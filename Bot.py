@@ -12,12 +12,11 @@ intents.messages = True  # Aktivieren des Zugriffs auf Nachrichtenereignisse
 
 bot = commands.Bot(command_prefix = '!', intents=intents)
 
-"""
 #Ausgeben anfang
 async def cronjob():
     print("Cron-Job wird ausgeführt")  # Debug-Ausgabe, um sicherzustellen, dass der Cron-Job gestartet wird
     try:
-        channel = bot.get_channel(831154976969326592)
+        channel = bot.get_channel(824277913162874921)
         async with aiosqlite.connect('main.sqlite') as db:
             async with db.execute("SELECT theme FROM main WHERE state = 'unused' ORDER BY RANDOM() LIMIT 1") as cursor:
                 result = await cursor.fetchone()
@@ -50,7 +49,6 @@ async def cronjob():
 scheduler = AsyncIOScheduler()
 scheduler.add_job(cronjob, CronTrigger(day_of_week='wed', hour=5, minute=0))
 #Ausgeben ende
-"""
 
 @bot.event
 async def on_ready():
@@ -66,7 +64,7 @@ async def on_ready():
             ''')
             await db.commit()
         print('Ich bin wach.')
-#        scheduler.start()
+        scheduler.start()
     except Exception as e:
         print(f"Fehler beim Initialisieren der Datenbank: {e}")
 
@@ -97,7 +95,7 @@ async def tmnew_error(ctx, error):
 @bot.command()
 async def tmdelete(ctx, limit: int = None):
     try: 
-        channel = bot.get_channel(831154976969326592)
+        channel = bot.get_channel(824277913162874921)
         async for msg in ctx.message.channel.history(limit=limit):
             await msg.delete()
         print(f"Cleared")
@@ -109,7 +107,7 @@ async def tmdelete(ctx, limit: int = None):
 @bot.command()
 async def tmuser(ctx):
     try:
-        channel = bot.get_channel(831154976969326592)
+        channel = bot.get_channel(824277913162874921)
         async with aiosqlite.connect('main.sqlite') as db:
             async with db.execute("SELECT user, COUNT(theme) FROM main WHERE state = 'unused' GROUP BY user") as cursor:
                 result = await cursor.fetchall()
@@ -126,7 +124,7 @@ async def tmuser(ctx):
 @bot.command(name='tmall')
 async def tmall(ctx):
     try:
-        channel = bot.get_channel(831154976969326592)
+        channel = bot.get_channel(824277913162874921)
         async with aiosqlite.connect('main.sqlite') as db:
             async with db.execute("SELECT user, theme FROM main WHERE state = 'unused'") as cursor:
                 result = await cursor.fetchall()
@@ -152,5 +150,5 @@ async def tmhelp(ctx):
         await ctx.send(f"Fehler beim Ausgeben der Hilfe: {e}")
 #Help ende
 
-bot.run('ODI0Mjc1NTYwNjgzMTQzMjc4.YFtAbw.7DoXRiptB0WANgIcS1XeVqFPCJ4')
+bot.run('ODMxMTgwNjA1NTA4MTU3NDgw.YHRfQg._DFBWFNLqGZ8YrbC7IDOlt5W-Cc')
 
