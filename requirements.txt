@@ -2,3 +2,4 @@ discord.py
 aiosqlite
 apscheduler
 asyncio
+python-dotenv
