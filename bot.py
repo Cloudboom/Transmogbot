@@ -9,8 +9,11 @@ import os
 
 # Load the environment variables from the .env file
 load_dotenv()
-channel_id=os.getenv('CHANNEL_ID')
+channel_id=int(os.getenv('CHANNEL_ID'))
 bot_token=os.getenv('BOT_TOKEN')
+cronweek=os.getenv('CRON_WEEK')
+cronhour=os.getenv('CRON_HOUR')
+cronminute=os.getenv('CRON_MINUTE')
 
 # Erstelle die Intents und aktiviere die benötigten
 intents = discord.Intents.default()
@@ -54,7 +57,7 @@ async def cronjob():
 
 # Scheduler erstellen und konfigurieren
 scheduler = AsyncIOScheduler()
-scheduler.add_job(cronjob, CronTrigger(day_of_week='wed', hour=5, minute=0))
+scheduler.add_job(cronjob, CronTrigger(day_of_week=cronweek, hour=cronhour, minute=cronminute))
 #Ausgeben ende
 
 @bot.event
