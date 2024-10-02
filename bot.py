@@ -71,7 +71,7 @@ async def on_ready():
             ''')
             await db.commit()
         print('Ich bin wach.')
-#        scheduler.start()
+        scheduler.start()
     except Exception as e:
         print(f"Fehler beim Initialisieren der Datenbank: {e}")
 
