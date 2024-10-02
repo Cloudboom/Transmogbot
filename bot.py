@@ -54,7 +54,7 @@ async def cronjob():
 
 # Scheduler erstellen und konfigurieren
 scheduler = AsyncIOScheduler()
-scheduler.add_job(cronjob, CronTrigger(day_of_week='wed', hour=5, minute=0))
+scheduler.add_job(cronjob, CronTrigger(day_of_week='wed', hour=8, minute=30))
 #Ausgeben ende
 
 @bot.event
