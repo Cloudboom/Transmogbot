@@ -5,9 +5,11 @@ A Discord bot that enables users to submit transmog themes for World of Warcraft
 ## Features
 
 - **Submit a New Theme**: Users can submit their transmog themes using the command `!tmnew <theme>`.
-- **Weekly Selection**: On Wednesdays (the weekly WoW reset), the bot randomly selects one theme and posts it in the designated channel.
+- **Cron based Selection**: Depending on the cron settings, the bot randomly selects one theme and posts it in the designated channel.
 - **View All Themes**: Users can view all submitted themes using the command `!tmall`.
 - **User Submission Count**: Check how many themes each user has submitted with the command `!tmuser`.
+- **Get notifications**: With the command `!tmnotify` or `tmnotifyoff` notifications can be toggled.
+- **Toggle the output**: The commands `!tmon` and `!tmoff` you can toggle the output of themes into the channel.
 - **Help Command**: Get a list of available commands using `!tmhelp`.
 
 ## Setup
