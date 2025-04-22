@@ -28,16 +28,16 @@ async def cronjob():
     try:
         channel = bot.get_channel(channel_id)
         async with aiosqlite.connect('main.sqlite') as db:
-            async with db.execute("SELECT theme FROM main WHERE state = 'unused' ORDER BY RANDOM() LIMIT 1") as cursor:
+            async with db.execute("SELECT theme FROM events WHERE state = 'unused' ORDER BY RANDOM() LIMIT 1") as cursor:
                 result = await cursor.fetchone()
             if result:
                 result = result[0]
-                async with db.execute("SELECT user FROM main WHERE theme = ?", (result,)) as cursor:
+                async with db.execute("SELECT user FROM events WHERE theme = ?", (result,)) as cursor:
                     user = await cursor.fetchone()
                 user = user[0]
-                await db.execute("UPDATE main SET state = 'used' WHERE theme = ?", (result,))
+                await db.execute("UPDATE events SET state = 'used' WHERE theme = ?", (result,))
                 await db.commit()
-                async with db.execute("SELECT COUNT(theme) FROM main WHERE state = 'unused'") as cursor:
+                async with db.execute("SELECT COUNT(theme) FROM events WHERE state = 'unused'") as cursor:
                     count = await cursor.fetchone()
                 count = count[0]
 
@@ -65,13 +65,38 @@ async def on_ready():
     print(f'Wir haben uns als {bot.user} eingeloggt')
     try:
         async with aiosqlite.connect('main.sqlite') as db:
+
+            async with db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='main'") as cursor:
+                table_exists = await cursor.fetchone()
+
+            if table_exists:
+                print("Renaming 'main' to 'events'...")
+                await db.execute("ALTER TABLE main RENAME TO events")
+            else:
+                print("'main' does not exist or already renamed.")
+
             await db.execute('''
-                CREATE TABLE IF NOT EXISTS main(
+                CREATE TABLE IF NOT EXISTS events(
 	                state TEXT,
 	                theme TEXT,
                     user TEXT
                 )
             ''')
+
+            # Create the settings table
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS settings (
+                    output_active INTEGER
+                )
+            ''')
+
+            # Insert default value if settings table is empty
+            await db.execute('''
+                INSERT INTO settings (output_active)
+                SELECT 1
+                WHERE NOT EXISTS (SELECT 1 FROM settings)
+            ''')
+
             await db.commit()
         print('Ich bin wach.')
         scheduler.start()
@@ -83,10 +108,10 @@ async def on_ready():
 async def tmnew(ctx, *, arg):
     try:
         async with aiosqlite.connect('main.sqlite') as db:
-            async with db.execute("SELECT theme FROM main WHERE theme = ?", (arg,)) as cursor:
+            async with db.execute("SELECT theme FROM events WHERE theme = ?", (arg,)) as cursor:
                 result = await cursor.fetchone()
             if result is None:
-                await db.execute("INSERT INTO main(state, theme, user) VALUES ('unused', ?, ?)", (arg, ctx.message.author.name))
+                await db.execute("INSERT INTO events(state, theme, user) VALUES ('unused', ?, ?)", (arg, ctx.message.author.name))
                 await db.commit()
                 await ctx.send(f"{ctx.message.author.name} hat das Motto |{arg}| eingereicht.", delete_after=60)
             else:
@@ -119,7 +144,7 @@ async def tmuser(ctx):
     try:
         channel = bot.get_channel(channel_id)
         async with aiosqlite.connect('main.sqlite') as db:
-            async with db.execute("SELECT user, COUNT(theme) FROM main WHERE state = 'unused' GROUP BY user") as cursor:
+            async with db.execute("SELECT user, COUNT(theme) FROM events WHERE state = 'unused' GROUP BY user") as cursor:
                 result = await cursor.fetchall()
         embed = discord.Embed(title="Wer hat wie viel eingereicht", color=discord.Color.green())
         for user, count in result:
@@ -136,7 +161,7 @@ async def tmall(ctx):
     try:
         channel = bot.get_channel(channel_id)
         async with aiosqlite.connect('main.sqlite') as db:
-            async with db.execute("SELECT user, theme FROM main WHERE state = 'unused'") as cursor:
+            async with db.execute("SELECT user, theme FROM events WHERE state = 'unused'") as cursor:
                 result = await cursor.fetchall()
         embed = discord.Embed(title="Wer hat was eingereicht", color=discord.Color.gold())
         for user, theme in result:
