@@ -11,7 +11,7 @@ import os
 load_dotenv()
 channel_id=int(os.getenv('CHANNEL_ID'))
 bot_token=os.getenv('BOT_TOKEN')
-cronweek=os.getenv('CRON_WEEK')
+cronweek=os.getenv('CRON_DAY_OF_WEEK')
 cronhour=os.getenv('CRON_HOUR')
 cronminute=os.getenv('CRON_MINUTE')
 

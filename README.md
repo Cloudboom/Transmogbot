@@ -18,3 +18,11 @@ To set up the bot, follow these steps:
    ```bash
    git clone https://github.com/yourusername/transmog-bot.git
    cd transmog-bot
+
+2. **Create a .env file (adjust the values to your needs)**:
+```bash
+CHANNEL_ID=
+BOT_TOKEN=
+CRON_DAY_OF_WEEK=mon-sun
+CRON_HOUR=0-23
+CRON_MINUTE=0-59
