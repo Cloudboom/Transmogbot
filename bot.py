@@ -32,25 +32,30 @@ async def cronjob():
                 setting = await cursor.fetchone()
 
             if setting and setting[0] == 1:    
-                async with db.execute("SELECT theme FROM events WHERE state = 'unused' ORDER BY RANDOM() LIMIT 1") as cursor:
+                async with db.execute("SELECT theme FROM themes WHERE state = 'unused' ORDER BY RANDOM() LIMIT 1") as cursor:
                     result = await cursor.fetchone()
                 if result:
                     result = result[0]
-                    async with db.execute("SELECT user FROM events WHERE theme = ?", (result,)) as cursor:
+                    async with db.execute("SELECT user FROM themes WHERE theme = ?", (result,)) as cursor:
                         user = await cursor.fetchone()
                     user = user[0]
-                    await db.execute("UPDATE events SET state = 'used' WHERE theme = ?", (result,))
+                    await db.execute("UPDATE themes SET state = 'used' WHERE theme = ?", (result,))
                     await db.commit()
-                    async with db.execute("SELECT COUNT(theme) FROM events WHERE state = 'unused'") as cursor:
+                    async with db.execute("SELECT COUNT(theme) FROM themes WHERE state = 'unused'") as cursor:
                         count = await cursor.fetchone()
                     count = count[0]
+
+                    async with db.execute("SELECT user FROM notification") as cursor:
+                        mention_users = await cursor.fetchall()
+                    mentions = " ".join([f"<@{user[0]}>" for user in mention_users])  # Assuming 'user' is a Discord ID    
 
                     embed = discord.Embed(title="Dresscode am Sonntag", color=discord.Color.purple())
                     embed.add_field(name="Nächstes Motto", value=result, inline=False)
                     embed.add_field(name="Eingereicht von", value=user, inline=False)
                     embed.add_field(name="Mottos in Hashoms Kiste", value=count, inline=False)
                     await bot.change_presence(activity=discord.Game(name=f"Motto: {result}"))
-                    await channel.send(embed=embed)
+                    await channel.send(f"{mentions}", embed=embed)
+                    #await channel.send(embed=embed)
                 else:
                     embed = discord.Embed(title="Dresscode am Sonntag", color=discord.Color.purple())
                     embed.add_field(name="Nächstes Motto", value="Es tut mir leid Reisender, aktuell sind alle Mottos aufgebraucht.", inline=False)
@@ -66,21 +71,21 @@ scheduler.add_job(cronjob, CronTrigger(day_of_week=cronweek, hour=cronhour, minu
 #Server startup
 @bot.event
 async def on_ready():
-    print(f'Wir haben uns als {bot.user} eingeloggt')
+    print(f'Logged in as: {bot.user}')
     try:
         async with aiosqlite.connect('main.sqlite') as db:
 
-            async with db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='main'") as cursor:
+            async with db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='events'") as cursor:
                 table_exists = await cursor.fetchone()
 
             if table_exists:
-                print("Renaming 'main' to 'events'...")
-                await db.execute("ALTER TABLE main RENAME TO events")
+                print("Renaming 'events' to 'themes'...")
+                await db.execute("ALTER TABLE events RENAME TO themes")
             else:
-                print("'main' does not exist or already renamed.")
+                print("'events' does not exist or already renamed.")
 
             await db.execute('''
-                CREATE TABLE IF NOT EXISTS events(
+                CREATE TABLE IF NOT EXISTS themes(
 	                state TEXT,
 	                theme TEXT,
                     user TEXT
@@ -101,6 +106,12 @@ async def on_ready():
                 WHERE NOT EXISTS (SELECT 1 FROM settings)
             ''')
 
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS notification(
+	                user TEXT PRIMARY KEY
+                )
+            ''')
+
             await db.commit()
         print('Im awake.')
         scheduler.start()
@@ -112,14 +123,14 @@ async def on_ready():
 async def tmnew(ctx, *, arg):
     try:
         async with aiosqlite.connect('main.sqlite') as db:
-            async with db.execute("SELECT theme FROM events WHERE theme = ?", (arg,)) as cursor:
+            async with db.execute("SELECT theme FROM themes WHERE theme = ?", (arg,)) as cursor:
                 result = await cursor.fetchone()
             if result is None:
-                await db.execute("INSERT INTO events(state, theme, user) VALUES ('unused', ?, ?)", (arg, ctx.message.author.name))
+                await db.execute("INSERT INTO themes(state, theme, user) VALUES ('unused', ?, ?)", (arg, ctx.message.author.global_name))
                 await db.commit()
-                await ctx.send(f"{ctx.message.author.name} hat das Motto |{arg}| eingereicht.", delete_after=60)
+                await ctx.send(f"{ctx.message.author.global_name} hat das Motto |{arg}| eingereicht.", delete_after=60)
             else:
-                await ctx.send(f"Sorry {ctx.message.author.name}, das Motto wurde schon eingereicht.", delete_after=60)
+                await ctx.send(f"Sorry {ctx.message.author.global_name}, das Motto wurde schon eingereicht.", delete_after=60)
         await ctx.message.delete()
     except Exception as e:
         await ctx.send(f"Fehler beim Einreichen des Mottos: {e}")    
@@ -140,13 +151,13 @@ async def tmdelete(ctx, limit: int = None):
     except Exception as e:
         print(f"Error on deleting messages: {e}")    
 
-#List events for user
+#List themes for user
 @bot.command()
 async def tmuser(ctx):
     try:
         channel = bot.get_channel(channel_id)
         async with aiosqlite.connect('main.sqlite') as db:
-            async with db.execute("SELECT user, COUNT(theme) FROM events WHERE state = 'unused' GROUP BY user") as cursor:
+            async with db.execute("SELECT user, COUNT(theme) FROM themes WHERE state = 'unused' GROUP BY user") as cursor:
                 result = await cursor.fetchall()
         embed = discord.Embed(title="Wer hat wie viel eingereicht", color=discord.Color.green())
         for user, count in result:
@@ -156,13 +167,13 @@ async def tmuser(ctx):
     except Exception as e:
         await ctx.send(f"Fehler beim Abrufen der Benutzerdaten: {e}")
 
-#List all events
+#List all themes
 @bot.command(name='tmall')
 async def tmall(ctx):
     try:
         channel = bot.get_channel(channel_id)
         async with aiosqlite.connect('main.sqlite') as db:
-            async with db.execute("SELECT user, theme FROM events WHERE state = 'unused'") as cursor:
+            async with db.execute("SELECT user, theme FROM themes WHERE state = 'unused'") as cursor:
                 result = await cursor.fetchall()
         embed = discord.Embed(title="Wer hat was eingereicht", color=discord.Color.gold())
         for user, theme in result:
@@ -172,7 +183,7 @@ async def tmall(ctx):
     except Exception as e:
         await ctx.send(f"Fehler beim Abrufen der Mottos: {e}")
 
-# Turn outputt on
+#Turn output on
 @bot.command(name='tmon')
 async def tmon(ctx):
     try:
@@ -185,7 +196,7 @@ async def tmon(ctx):
     except Exception as e:
         await ctx.send(f"Aktivieren fehlgeschlagen: {e}")   
 
-# Turn outputt off
+#Turn output off
 @bot.command(name='tmoff')
 async def tmoff(ctx):
     try:
@@ -198,6 +209,33 @@ async def tmoff(ctx):
     except Exception as e:
         await ctx.send(f"Abschalten fehlgeschlagen: {e}")    
 
+#Add user to notification
+@bot.command(name='tmnotify')
+async def tmnotify(ctx):
+    try:
+        print(ctx.message.author.global_name)
+        channel = bot.get_channel(channel_id)
+        async with aiosqlite.connect('main.sqlite') as db:
+            await db.execute("INSERT OR REPLACE INTO notification (user) VALUES (?)", (ctx.message.author.id,))
+            await db.commit()
+            await ctx.send("Benachrichtigung eingerichtet.")
+            
+    except Exception as e:
+        await ctx.send(f"Einrichten fehlgeschlagen: {e}")   
+
+#Remove user from notification
+@bot.command(name='tmnotifyoff')
+async def tmnotify(ctx):
+    try:
+        channel = bot.get_channel(channel_id)
+        async with aiosqlite.connect('main.sqlite') as db:
+            await db.execute("DELETE FROM notification WHERE user = ?", (ctx.message.author.id,))
+            await db.commit()
+            await ctx.send("Benachrichtigung abgeschaltet.")
+            
+    except Exception as e:
+        await ctx.send(f"Deaktivieren fehlgeschlagen: {e}")           
+
 #Help
 @bot.command()    
 async def tmhelp(ctx):
@@ -206,6 +244,7 @@ async def tmhelp(ctx):
         await ctx.send("Mit z.B. `!tmnew |Name des Mottos| (ohne die Sonderzeichen))` kannst du etwas Neues einreichen.")
         await ctx.send("Mit `!tmuser` kannst du dir ausgeben lassen, wer wie viele Mottos eingereicht hat.")
         await ctx.send("Mit `!tmall` kannst du dir alle aktuellen Mottos auf der Liste ausgeben lassen.")
+        await ctx.send("Mit `!tmnotify` kannst du dir eine Benachrichtugng einrichten.")
         await ctx.message.delete()
     except Exception as e:
         await ctx.send(f"Fehler beim Ausgeben der Hilfe: {e}")
