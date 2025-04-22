@@ -75,15 +75,6 @@ async def on_ready():
     try:
         async with aiosqlite.connect('main.sqlite') as db:
 
-            async with db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='events'") as cursor:
-                table_exists = await cursor.fetchone()
-
-            if table_exists:
-                print("Renaming 'events' to 'themes'...")
-                await db.execute("ALTER TABLE events RENAME TO themes")
-            else:
-                print("'events' does not exist or already renamed.")
-
             await db.execute('''
                 CREATE TABLE IF NOT EXISTS themes(
 	                state TEXT,
