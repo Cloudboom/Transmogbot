@@ -3,3 +3,4 @@ aiosqlite
 apscheduler
 asyncio
 python-dotenv
+pytz
