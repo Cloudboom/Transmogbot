@@ -6,6 +6,7 @@ from apscheduler.triggers.cron import CronTrigger
 import asyncio
 from dotenv import load_dotenv
 import os
+from pytz import timezone
 
 # Load the environment variables from the .env file
 load_dotenv()
@@ -14,6 +15,7 @@ bot_token=os.getenv('BOT_TOKEN')
 cronweek=os.getenv('CRON_DAY_OF_WEEK')
 cronhour=os.getenv('CRON_HOUR')
 cronminute=os.getenv('CRON_MINUTE')
+crontz = os.getenv('CRON_TZ', 'UTC')
 
 # Create the intents and activate the needed ones.
 intents = discord.Intents.default()
@@ -65,8 +67,20 @@ async def cronjob():
         print(f"Error while running the cronjob: {e}")
 
 # Scheduler creation
-scheduler = AsyncIOScheduler()
-scheduler.add_job(cronjob, CronTrigger(day_of_week=cronweek, hour=cronhour, minute=cronminute))
+scheduler = AsyncIOScheduler(
+    timezone=timezone(crontz),  # use env var here
+    job_defaults={"coalesce": True, "max_instances": 1}
+)
+scheduler.add_job(
+    cronjob,
+    CronTrigger(
+        day_of_week=cronweek,
+        hour=int(cronhour),
+        minute=int(cronminute)
+    ),
+    id="weekly_motto_job",
+    replace_existing=True
+)
 
 #Server startup
 @bot.event
