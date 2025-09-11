@@ -16,6 +16,8 @@ cronweek=os.getenv('CRON_DAY_OF_WEEK')
 cronhour=os.getenv('CRON_HOUR')
 cronminute=os.getenv('CRON_MINUTE')
 crontz = os.getenv('CRON_TZ', 'UTC')
+db_path = os.getenv("DB_PATH", "/main.sqlite")
+print(db_path)
 
 # Create the intents and activate the needed ones.
 intents = discord.Intents.default()
@@ -29,7 +31,7 @@ async def cronjob():
     print("Cron-Job is running.") 
     try:
         channel = bot.get_channel(channel_id)
-        async with aiosqlite.connect('main.sqlite') as db:
+        async with aiosqlite.connect(db_path) as db:
             async with db.execute("SELECT output_active FROM settings") as cursor:
                 setting = await cursor.fetchone()
 
@@ -87,7 +89,7 @@ scheduler.add_job(
 async def on_ready():
     print(f'Logged in as: {bot.user}')
     try:
-        async with aiosqlite.connect('main.sqlite') as db:
+        async with aiosqlite.connect(db_path) as db:
 
             await db.execute('''
                 CREATE TABLE IF NOT EXISTS themes(
@@ -127,7 +129,7 @@ async def on_ready():
 @bot.command(pass_context=True)    
 async def tmnew(ctx, *, arg):
     try:
-        async with aiosqlite.connect('main.sqlite') as db:
+        async with aiosqlite.connect(db_path) as db:
             async with db.execute("SELECT theme FROM themes WHERE theme = ?", (arg,)) as cursor:
                 result = await cursor.fetchone()
             if result is None:
@@ -161,7 +163,7 @@ async def tmdelete(ctx, limit: int = None):
 async def tmuser(ctx):
     try:
         channel = bot.get_channel(channel_id)
-        async with aiosqlite.connect('main.sqlite') as db:
+        async with aiosqlite.connect(db_path) as db:
             async with db.execute("SELECT user, COUNT(theme) FROM themes WHERE state = 'unused' GROUP BY user") as cursor:
                 result = await cursor.fetchall()
         embed = discord.Embed(title="Wer hat wie viel eingereicht", color=discord.Color.green())
@@ -177,7 +179,7 @@ async def tmuser(ctx):
 async def tmall(ctx):
     try:
         channel = bot.get_channel(channel_id)
-        async with aiosqlite.connect('main.sqlite') as db:
+        async with aiosqlite.connect(db_path) as db:
             async with db.execute("SELECT user, theme FROM themes WHERE state = 'unused'") as cursor:
                 result = await cursor.fetchall()
         embed = discord.Embed(title="Wer hat was eingereicht", color=discord.Color.gold())
@@ -193,7 +195,7 @@ async def tmall(ctx):
 async def tmon(ctx):
     try:
         channel = bot.get_channel(channel_id)
-        async with aiosqlite.connect('main.sqlite') as db:
+        async with aiosqlite.connect(db_path) as db:
             await db.execute("UPDATE settings SET output_active = 1")
             await db.commit()
             await ctx.send("Ausgabe aktiviert.")
@@ -206,7 +208,7 @@ async def tmon(ctx):
 async def tmoff(ctx):
     try:
         channel = bot.get_channel(channel_id)
-        async with aiosqlite.connect('main.sqlite') as db:
+        async with aiosqlite.connect(db_path) as db:
             await db.execute("UPDATE settings SET output_active = 0")
             await db.commit()
             await ctx.send("Ausgabe abgeschaltet.")
@@ -220,7 +222,7 @@ async def tmnotify(ctx):
     try:
         print(ctx.message.author.global_name)
         channel = bot.get_channel(channel_id)
-        async with aiosqlite.connect('main.sqlite') as db:
+        async with aiosqlite.connect(db_path) as db:
             await db.execute("INSERT OR REPLACE INTO notification (user) VALUES (?)", (ctx.message.author.id,))
             await db.commit()
             await ctx.send("Benachrichtigung eingerichtet.")
@@ -233,7 +235,7 @@ async def tmnotify(ctx):
 async def tmnotify(ctx):
     try:
         channel = bot.get_channel(channel_id)
-        async with aiosqlite.connect('main.sqlite') as db:
+        async with aiosqlite.connect(db_path) as db:
             await db.execute("DELETE FROM notification WHERE user = ?", (ctx.message.author.id,))
             await db.commit()
             await ctx.send("Benachrichtigung abgeschaltet.")
