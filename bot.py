@@ -75,8 +75,8 @@ scheduler.add_job(
     cronjob,
     CronTrigger(
         day_of_week=cronweek,
-        hour=int(cronhour),
-        minute=int(cronminute)
+        hour=cronhour,
+        minute=cronminute
     ),
     id="weekly_motto_job",
     replace_existing=True
