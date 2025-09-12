@@ -4,3 +4,4 @@ apscheduler
 asyncio
 python-dotenv
 pytz
+logging

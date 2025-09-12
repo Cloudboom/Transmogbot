@@ -7,16 +7,21 @@ import asyncio
 from dotenv import load_dotenv
 import os
 from pytz import timezone
+import logging
 
 # Load the environment variables from the .env file
 load_dotenv()
 channel_id=int(os.getenv('CHANNEL_ID'))
 bot_token=os.getenv('BOT_TOKEN')
-cronweek=os.getenv('CRON_DAY_OF_WEEK')
-cronhour=os.getenv('CRON_HOUR')
-cronminute=os.getenv('CRON_MINUTE')
+cronweek=os.getenv('CRON_DAY_OF_WEEK', '*')
+cronhour=os.getenv('CRON_HOUR', '*')
+cronminute=os.getenv('CRON_MINUTE', '*')
 crontz = os.getenv('CRON_TZ', 'UTC')
-db_path = os.getenv("DB_PATH", "/main.sqlite")
+db_path = os.getenv('DB_PATH', '/main.sqlite')
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [%(name)s] %(message)s")
+logging.getLogger("apscheduler").setLevel(logging.INFO)
+logging.info("Cron config: dow=%r hour=%r min=%r tz=%r db=%s", cronweek, cronhour, cronminute, crontz, db_path)
 
 # Create the intents and activate the needed ones.
 intents = discord.Intents.default()
@@ -71,21 +76,26 @@ scheduler = AsyncIOScheduler(
     timezone=timezone(crontz),  # use env var here
     job_defaults={"coalesce": True, "max_instances": 1}
 )
-scheduler.add_job(
-    cronjob,
-    CronTrigger(
-        day_of_week=cronweek,
-        hour=cronhour,
-        minute=cronminute
-    ),
-    id="weekly_motto_job",
-    replace_existing=True
+
+def register_jobs_once():
+    scheduler.add_job(
+        cronjob,
+        CronTrigger(
+            day_of_week=cronweek,
+            hour=cronhour,
+            minute=cronminute
+        ),
+        id="weekly_motto_job",
+        replace_existing=True
 )
 
 #Server startup
 @bot.event
 async def on_ready():
-    print(f'Logged in as: {bot.user}')
+    if getattr(bot, "_ready_once", False):
+        return
+    bot._ready_once = True
+    print("I am", bot.user, bot.user.id)
     try:
         async with aiosqlite.connect(db_path) as db:
 
@@ -119,7 +129,10 @@ async def on_ready():
 
             await db.commit()
         print('Im awake.')
-        scheduler.start()
+        register_jobs_once()
+        if not scheduler.running:
+            scheduler.start()
+            print("Scheduler started.")
     except Exception as e:
         print(f"Error initializing the database: {e}")
 
