@@ -17,7 +17,6 @@ cronhour=os.getenv('CRON_HOUR')
 cronminute=os.getenv('CRON_MINUTE')
 crontz = os.getenv('CRON_TZ', 'UTC')
 db_path = os.getenv("DB_PATH", "/main.sqlite")
-print(db_path)
 
 # Create the intents and activate the needed ones.
 intents = discord.Intents.default()
@@ -59,7 +58,6 @@ async def cronjob():
                     embed.add_field(name="Mottos in Hashoms Kiste", value=count, inline=False)
                     await bot.change_presence(activity=discord.Game(name=f"Motto: {result}"))
                     await channel.send(f"{mentions}", embed=embed)
-                    #await channel.send(embed=embed)
                 else:
                     embed = discord.Embed(title="Dresscode am Sonntag", color=discord.Color.purple())
                     embed.add_field(name="Nächstes Motto", value="Es tut mir leid Reisender, aktuell sind alle Mottos aufgebraucht.", inline=False)
