@@ -1,0 +1,98 @@
+{
+  "log": {
+    "_comment": "Mensagens de log",
+    "cron_config": "Configuracao cron: schedule='{schedule}' tz='{tz}' db={db}",
+    "language_loaded": "Idioma carregado: {language} (diretorio: {directory})",
+    "cron_running": "A tarefa cron esta em execucao.",
+    "cron_error": "Erro ao executar a tarefa cron: {error}",
+    "bot_ready": "Bot pronto: {user} ({user_id})",
+    "awake": "Bot iniciado.",
+    "scheduler_started": "Scheduler iniciado.",
+    "db_init_error": "Erro ao inicializar o banco de dados: {error}",
+    "commands_synced": "Comandos slash sincronizados: {count}",
+    "commands_sync_error": "Erro ao sincronizar comandos slash: {error}",
+    "messages_cleared": "Mensagens apagadas.",
+    "delete_error": "Erro ao apagar mensagens: {error}",
+    "notify_subscribe": "Notificacoes ativadas para usuario: {user}"
+  },
+  "embed": {
+    "_comment": "Titulos e campos do embed",
+    "dresscode_title": "Dress code de domingo",
+    "next_theme": "Proximo tema",
+    "submitted_by": "Enviado por",
+    "themes_count": "Temas restantes na caixa do Hashom",
+    "no_themes_available": "Desculpe viajante, no momento nao ha temas disponiveis.",
+    "user_count_title": "Quem enviou quantos",
+    "all_themes_title": "Quem enviou o que"
+  },
+  "presence": {
+    "_comment": "Texto de presenca do bot no Discord",
+    "theme": "Tema: {theme}",
+    "no_themes": "Sem temas restantes"
+  },
+  "msg": {
+    "_comment": "Respostas de comandos e mensagens de erro",
+    "tmnew_success": "{user} enviou o tema |{theme}|.",
+    "tmnew_duplicate": "Desculpe {user}, o tema |{theme}| ja foi enviado.",
+    "tmnew_error": "Erro ao enviar tema: {error}",
+    "tmnew_missing_arg": "Por favor informe um tema.",
+    "tmdelete_no_channel": "Nenhum contexto de canal disponivel.",
+    "tmdelete_success": "Mensagens apagadas: {count}",
+    "tmdelete_error": "Erro ao apagar mensagens: {error}",
+    "tmdelete_admin_only": "Voce precisa de permissao de administrador para usar este comando.",
+    "tmdelete_no_dm": "Este comando so pode ser usado em servidor.",
+    "target_channel_missing": "Nao foi possivel encontrar o canal de destino.",
+    "sent_to_channel": "A saida foi enviada para o canal de destino.",
+    "tmuser_error": "Erro ao carregar dados de usuarios: {error}",
+    "tmall_error": "Erro ao carregar temas: {error}",
+    "tmon_success": "Saida ativada.",
+    "tmon_error": "Falha ao ativar saida: {error}",
+    "tmoff_success": "Saida desativada.",
+    "tmoff_error": "Falha ao desativar saida: {error}",
+    "tmnotify_success": "Notificacao ativada.",
+    "tmnotify_error": "Falha ao ativar notificacao: {error}",
+    "tmnotifyoff_success": "Notificacao desativada.",
+    "tmnotifyoff_error": "Falha ao desativar notificacao: {error}",
+    "tmhelp_error": "Erro ao mostrar ajuda: {error}"
+  },
+  "help": {
+    "_comment": "Linhas de ajuda do comando",
+    "line1": "Precisa da minha ajuda?",
+    "line2": "Use `/tmnew` para enviar um novo tema.",
+    "line3": "Use `/tmuser` para ver quem enviou quantos temas.",
+    "line4": "Use `/tmall` para listar todos os temas atuais.",
+    "line5": "Use `/tmnotify` para ativar notificacoes e `/tmnotifyoff` para desativar."
+  },
+  "cmd": {
+    "_comment": "Descricoes dos comandos slash",
+    "tmnew": {
+      "description": "Enviar um novo tema.",
+      "arg": "Tema para enviar"
+    },
+    "tmdelete": {
+      "description": "Apagar mensagens recentes no canal atual.",
+      "limit": "Quantas mensagens recentes apagar"
+    },
+    "tmuser": {
+      "description": "Mostrar quantos temas cada usuario enviou."
+    },
+    "tmall": {
+      "description": "Listar todos os temas atualmente nao usados."
+    },
+    "tmon": {
+      "description": "Ativar a saida agendada."
+    },
+    "tmoff": {
+      "description": "Desativar a saida agendada."
+    },
+    "tmnotify": {
+      "description": "Ativar notificacoes para o usuario atual."
+    },
+    "tmnotifyoff": {
+      "description": "Desativar notificacoes para o usuario atual."
+    },
+    "tmhelp": {
+      "description": "Mostrar os comandos disponiveis do bot."
+    }
+  }
+}

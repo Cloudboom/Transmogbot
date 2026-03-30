@@ -9,6 +9,8 @@
     "awake": "Bot started.",
     "scheduler_started": "Scheduler started.",
     "db_init_error": "Error initializing database: {error}",
+    "commands_synced": "Slash commands synced: {count}",
+    "commands_sync_error": "Error syncing slash commands: {error}",
     "messages_cleared": "Messages cleared.",
     "delete_error": "Error deleting messages: {error}",
     "notify_subscribe": "Notifications enabled for user: {user}"
@@ -34,6 +36,13 @@
     "tmnew_duplicate": "Sorry {user}, the theme |{theme}| was already submitted.",
     "tmnew_error": "Error while submitting theme: {error}",
     "tmnew_missing_arg": "Please provide a theme.",
+    "tmdelete_no_channel": "No channel context available.",
+    "tmdelete_success": "Deleted messages: {count}",
+    "tmdelete_error": "Error deleting messages: {error}",
+    "tmdelete_admin_only": "You need administrator permissions to use this command.",
+    "tmdelete_no_dm": "This command can only be used in a server.",
+    "target_channel_missing": "Could not find target channel.",
+    "sent_to_channel": "Output was sent to the target channel.",
     "tmuser_error": "Error while loading user data: {error}",
     "tmall_error": "Error while loading themes: {error}",
     "tmon_success": "Output enabled.",
@@ -49,9 +58,41 @@
   "help": {
     "_comment": "Help command lines",
     "line1": "You need my help?",
-    "line2": "With e.g. `!tmnew |theme name|` you can submit a new one.",
-    "line3": "With `!tmuser` you can see who submitted how many themes.",
-    "line4": "With `!tmall` you can list all current themes.",
-    "line5": "With `!tmnotify` you enable notifications and with `!tmnotifyoff` you disable them again."
+    "line2": "Use `/tmnew` to submit a new theme.",
+    "line3": "Use `/tmuser` to see who submitted how many themes.",
+    "line4": "Use `/tmall` to list all current themes.",
+    "line5": "Use `/tmnotify` to enable notifications and `/tmnotifyoff` to disable them."
+  },
+  "cmd": {
+    "_comment": "Slash command descriptions",
+    "tmnew": {
+      "description": "Submit a new theme.",
+      "arg": "Theme to submit"
+    },
+    "tmdelete": {
+      "description": "Delete recent messages in the current channel.",
+      "limit": "How many recent messages to delete"
+    },
+    "tmuser": {
+      "description": "Show count of submitted themes per user."
+    },
+    "tmall": {
+      "description": "List all currently unused themes."
+    },
+    "tmon": {
+      "description": "Enable scheduled output posting."
+    },
+    "tmoff": {
+      "description": "Disable scheduled output posting."
+    },
+    "tmnotify": {
+      "description": "Enable notifications for the current user."
+    },
+    "tmnotifyoff": {
+      "description": "Disable notifications for the current user."
+    },
+    "tmhelp": {
+      "description": "Show available bot commands."
+    }
   }
 }

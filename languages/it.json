@@ -1,0 +1,98 @@
+{
+  "log": {
+    "_comment": "Messaggi di log",
+    "cron_config": "Configurazione cron: schedule='{schedule}' tz='{tz}' db={db}",
+    "language_loaded": "Lingua caricata: {language} (cartella: {directory})",
+    "cron_running": "Il job cron e in esecuzione.",
+    "cron_error": "Errore durante l'esecuzione del job cron: {error}",
+    "bot_ready": "Bot pronto: {user} ({user_id})",
+    "awake": "Bot avviato.",
+    "scheduler_started": "Scheduler avviato.",
+    "db_init_error": "Errore durante l'inizializzazione del database: {error}",
+    "commands_synced": "Comandi slash sincronizzati: {count}",
+    "commands_sync_error": "Errore durante la sincronizzazione dei comandi slash: {error}",
+    "messages_cleared": "Messaggi eliminati.",
+    "delete_error": "Errore durante l'eliminazione dei messaggi: {error}",
+    "notify_subscribe": "Notifiche abilitate per utente: {user}"
+  },
+  "embed": {
+    "_comment": "Titoli e campi dell'embed",
+    "dresscode_title": "Dress code della domenica",
+    "next_theme": "Prossimo tema",
+    "submitted_by": "Inviato da",
+    "themes_count": "Temi rimasti nella scatola di Hashom",
+    "no_themes_available": "Mi dispiace viaggiatore, al momento non ci sono temi disponibili.",
+    "user_count_title": "Chi ha inviato quanti temi",
+    "all_themes_title": "Chi ha inviato cosa"
+  },
+  "presence": {
+    "_comment": "Testo della presenza del bot Discord",
+    "theme": "Tema: {theme}",
+    "no_themes": "Nessun tema rimasto"
+  },
+  "msg": {
+    "_comment": "Risposte dei comandi e messaggi di errore",
+    "tmnew_success": "{user} ha inviato il tema |{theme}|.",
+    "tmnew_duplicate": "Spiacente {user}, il tema |{theme}| e gia stato inviato.",
+    "tmnew_error": "Errore durante l'invio del tema: {error}",
+    "tmnew_missing_arg": "Per favore inserisci un tema.",
+    "tmdelete_no_channel": "Nessun contesto canale disponibile.",
+    "tmdelete_success": "Messaggi eliminati: {count}",
+    "tmdelete_error": "Errore durante l'eliminazione dei messaggi: {error}",
+    "tmdelete_admin_only": "Ti servono i permessi amministratore per usare questo comando.",
+    "tmdelete_no_dm": "Questo comando puo essere usato solo in un server.",
+    "target_channel_missing": "Impossibile trovare il canale di destinazione.",
+    "sent_to_channel": "Output inviato al canale di destinazione.",
+    "tmuser_error": "Errore durante il caricamento dei dati utente: {error}",
+    "tmall_error": "Errore durante il caricamento dei temi: {error}",
+    "tmon_success": "Output abilitato.",
+    "tmon_error": "Abilitazione output fallita: {error}",
+    "tmoff_success": "Output disabilitato.",
+    "tmoff_error": "Disabilitazione output fallita: {error}",
+    "tmnotify_success": "Notifica abilitata.",
+    "tmnotify_error": "Abilitazione notifica fallita: {error}",
+    "tmnotifyoff_success": "Notifica disabilitata.",
+    "tmnotifyoff_error": "Disabilitazione notifica fallita: {error}",
+    "tmhelp_error": "Errore durante la visualizzazione dell'aiuto: {error}"
+  },
+  "help": {
+    "_comment": "Righe di aiuto del comando",
+    "line1": "Hai bisogno del mio aiuto?",
+    "line2": "Usa `/tmnew` per inviare un nuovo tema.",
+    "line3": "Usa `/tmuser` per vedere chi ha inviato quanti temi.",
+    "line4": "Usa `/tmall` per elencare tutti i temi attuali.",
+    "line5": "Usa `/tmnotify` per attivare le notifiche e `/tmnotifyoff` per disattivarle."
+  },
+  "cmd": {
+    "_comment": "Descrizioni dei comandi slash",
+    "tmnew": {
+      "description": "Invia un nuovo tema.",
+      "arg": "Tema da inviare"
+    },
+    "tmdelete": {
+      "description": "Elimina i messaggi recenti nel canale corrente.",
+      "limit": "Quanti messaggi recenti eliminare"
+    },
+    "tmuser": {
+      "description": "Mostra quanti temi ha inviato ogni utente."
+    },
+    "tmall": {
+      "description": "Elenca tutti i temi attualmente non usati."
+    },
+    "tmon": {
+      "description": "Abilita l'output pianificato."
+    },
+    "tmoff": {
+      "description": "Disabilita l'output pianificato."
+    },
+    "tmnotify": {
+      "description": "Abilita le notifiche per l'utente corrente."
+    },
+    "tmnotifyoff": {
+      "description": "Disabilita le notifiche per l'utente corrente."
+    },
+    "tmhelp": {
+      "description": "Mostra i comandi disponibili del bot."
+    }
+  }
+}
