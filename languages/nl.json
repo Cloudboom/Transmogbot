@@ -1,0 +1,98 @@
+{
+  "log": {
+    "_comment": "Logberichten",
+    "cron_config": "Cron-configuratie: schedule='{schedule}' tz='{tz}' db={db}",
+    "language_loaded": "Taal geladen: {language} (map: {directory})",
+    "cron_running": "Cron-taak wordt uitgevoerd.",
+    "cron_error": "Fout tijdens uitvoeren van cron-taak: {error}",
+    "bot_ready": "Bot klaar: {user} ({user_id})",
+    "awake": "Bot gestart.",
+    "scheduler_started": "Scheduler gestart.",
+    "db_init_error": "Fout bij initialiseren van database: {error}",
+    "commands_synced": "Slash-commando's gesynchroniseerd: {count}",
+    "commands_sync_error": "Fout bij synchroniseren van slash-commando's: {error}",
+    "messages_cleared": "Berichten verwijderd.",
+    "delete_error": "Fout bij verwijderen van berichten: {error}",
+    "notify_subscribe": "Meldingen ingeschakeld voor gebruiker: {user}"
+  },
+  "embed": {
+    "_comment": "Embed-titels en velden",
+    "dresscode_title": "Dresscode op zondag",
+    "next_theme": "Volgend thema",
+    "submitted_by": "Ingediend door",
+    "themes_count": "Thema's over in Hashom's kist",
+    "no_themes_available": "Sorry reiziger, er zijn momenteel geen thema's meer beschikbaar.",
+    "user_count_title": "Wie heeft hoeveel ingediend",
+    "all_themes_title": "Wie heeft wat ingediend"
+  },
+  "presence": {
+    "_comment": "Discord-bot aanwezigheidstekst",
+    "theme": "Thema: {theme}",
+    "no_themes": "Geen thema's meer"
+  },
+  "msg": {
+    "_comment": "Commandoreacties en foutmeldingen",
+    "tmnew_success": "{user} heeft het thema |{theme}| ingediend.",
+    "tmnew_duplicate": "Sorry {user}, het thema |{theme}| is al ingediend.",
+    "tmnew_error": "Fout bij indienen van thema: {error}",
+    "tmnew_missing_arg": "Geef alsjeblieft een thema op.",
+    "tmdelete_no_channel": "Geen kanaalcontext beschikbaar.",
+    "tmdelete_success": "Berichten verwijderd: {count}",
+    "tmdelete_error": "Fout bij verwijderen van berichten: {error}",
+    "tmdelete_admin_only": "Je hebt administratorrechten nodig voor dit commando.",
+    "tmdelete_no_dm": "Dit commando kan alleen in een server worden gebruikt.",
+    "target_channel_missing": "Doelkanaal kon niet worden gevonden.",
+    "sent_to_channel": "Uitvoer is naar het doelkanaal gestuurd.",
+    "tmuser_error": "Fout bij laden van gebruikersdata: {error}",
+    "tmall_error": "Fout bij laden van thema's: {error}",
+    "tmon_success": "Uitvoer ingeschakeld.",
+    "tmon_error": "Inschakelen van uitvoer mislukt: {error}",
+    "tmoff_success": "Uitvoer uitgeschakeld.",
+    "tmoff_error": "Uitschakelen van uitvoer mislukt: {error}",
+    "tmnotify_success": "Melding ingeschakeld.",
+    "tmnotify_error": "Inschakelen van melding mislukt: {error}",
+    "tmnotifyoff_success": "Melding uitgeschakeld.",
+    "tmnotifyoff_error": "Uitschakelen van melding mislukt: {error}",
+    "tmhelp_error": "Fout bij tonen van hulp: {error}"
+  },
+  "help": {
+    "_comment": "Hulpregels van de opdracht",
+    "line1": "Heb je mijn hulp nodig?",
+    "line2": "Gebruik `/tmnew` om een nieuw thema in te dienen.",
+    "line3": "Gebruik `/tmuser` om te zien wie hoeveel thema's heeft ingediend.",
+    "line4": "Gebruik `/tmall` om alle huidige thema's te tonen.",
+    "line5": "Gebruik `/tmnotify` om meldingen aan te zetten en `/tmnotifyoff` om ze uit te zetten."
+  },
+  "cmd": {
+    "_comment": "Beschrijvingen van slash-commando's",
+    "tmnew": {
+      "description": "Dien een nieuw thema in.",
+      "arg": "Thema om in te dienen"
+    },
+    "tmdelete": {
+      "description": "Verwijder recente berichten in het huidige kanaal.",
+      "limit": "Hoeveel recente berichten verwijderen"
+    },
+    "tmuser": {
+      "description": "Toon hoeveel thema's elke gebruiker heeft ingediend."
+    },
+    "tmall": {
+      "description": "Toon alle momenteel ongebruikte thema's."
+    },
+    "tmon": {
+      "description": "Schakel geplande uitvoer in."
+    },
+    "tmoff": {
+      "description": "Schakel geplande uitvoer uit."
+    },
+    "tmnotify": {
+      "description": "Schakel meldingen in voor de huidige gebruiker."
+    },
+    "tmnotifyoff": {
+      "description": "Schakel meldingen uit voor de huidige gebruiker."
+    },
+    "tmhelp": {
+      "description": "Toon beschikbare bot-commando's."
+    }
+  }
+}
