@@ -205,15 +205,34 @@ async def cronjob():
                     count = count[0]
 
                     async with db.execute("SELECT user FROM notification") as cursor:
-                        mention_users = await cursor.fetchall()
-                    mentions = " ".join([f"<@{user[0]}>" for user in mention_users])  # Assuming 'user' is a Discord ID    
+                        notify_users = await cursor.fetchall()
 
                     embed = discord.Embed(title=t("embed.dresscode_title"), color=discord.Color.purple())
                     embed.add_field(name=t("embed.next_theme"), value=result, inline=False)
                     embed.add_field(name=t("embed.submitted_by"), value=user, inline=False)
                     embed.add_field(name=t("embed.themes_count"), value=count, inline=False)
                     await bot.change_presence(activity=discord.Game(name=t("presence.theme", theme=result)))
-                    await channel.send(f"{mentions}", embed=embed)
+                    if channel is not None:
+                        await channel.send(embed=embed)
+
+                    for notification_user in notify_users:
+                        raw_user_id = notification_user[0]
+                        try:
+                            notify_user_id = int(raw_user_id)
+                        except (TypeError, ValueError):
+                            logging.warning("Invalid notification user id: %r", raw_user_id)
+                            continue
+
+                        try:
+                            target_user = bot.get_user(notify_user_id) or await bot.fetch_user(notify_user_id)
+                            if target_user is None:
+                                logging.warning("Notification user not found: %s", notify_user_id)
+                                continue
+                            await target_user.send(embed=embed)
+                        except discord.Forbidden:
+                            logging.warning("Cannot DM user (DMs disabled): %s", notify_user_id)
+                        except Exception as dm_error:
+                            logging.error("Failed to DM user %s: %s", notify_user_id, dm_error)
                 else:
                     embed = discord.Embed(title=t("embed.dresscode_title"), color=discord.Color.purple())
                     embed.add_field(name=t("embed.next_theme"), value=t("embed.no_themes_available"), inline=False)
@@ -413,6 +432,9 @@ async def tmall(interaction: discord.Interaction):
     name='tmon',
     description=app_commands.locale_str("Enable scheduled output posting.", key="cmd.tmon.description")
 )
+@app_commands.guild_only()
+@app_commands.default_permissions(administrator=True)
+@app_commands.checks.has_permissions(administrator=True)
 async def tmon(interaction: discord.Interaction):
     try:
         async with aiosqlite.connect(db_path) as db:
@@ -423,11 +445,26 @@ async def tmon(interaction: discord.Interaction):
         await send_interaction_message(interaction, content=ti(interaction, "msg.tmon_error", error=e), ephemeral=True)
 
 
+@tmon.error
+async def tmon_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.MissingPermissions):
+        await send_interaction_message(interaction, content=ti(interaction, "msg.tmdelete_admin_only"), ephemeral=True)
+        return
+    if isinstance(error, app_commands.NoPrivateMessage):
+        await send_interaction_message(interaction, content=ti(interaction, "msg.tmdelete_no_dm"), ephemeral=True)
+        return
+
+    await send_interaction_message(interaction, content=ti(interaction, "msg.tmon_error", error=error), ephemeral=True)
+
+
 #Turn output off
 @bot.tree.command(
     name='tmoff',
     description=app_commands.locale_str("Disable scheduled output posting.", key="cmd.tmoff.description")
 )
+@app_commands.guild_only()
+@app_commands.default_permissions(administrator=True)
+@app_commands.checks.has_permissions(administrator=True)
 async def tmoff(interaction: discord.Interaction):
     try:
         async with aiosqlite.connect(db_path) as db:
@@ -436,6 +473,18 @@ async def tmoff(interaction: discord.Interaction):
             await send_interaction_message(interaction, content=ti(interaction, "msg.tmoff_success"))
     except Exception as e:
         await send_interaction_message(interaction, content=ti(interaction, "msg.tmoff_error", error=e), ephemeral=True)
+
+
+@tmoff.error
+async def tmoff_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.MissingPermissions):
+        await send_interaction_message(interaction, content=ti(interaction, "msg.tmdelete_admin_only"), ephemeral=True)
+        return
+    if isinstance(error, app_commands.NoPrivateMessage):
+        await send_interaction_message(interaction, content=ti(interaction, "msg.tmdelete_no_dm"), ephemeral=True)
+        return
+
+    await send_interaction_message(interaction, content=ti(interaction, "msg.tmoff_error", error=error), ephemeral=True)
 
 
 #Add user to notification
