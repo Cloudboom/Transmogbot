@@ -1,22 +1,24 @@
 {
   "log": {
-    "_comment": "Logging messages",
+    "_comment": "Protokollmeldungen",
     "cron_config": "Cron-Konfiguration: schedule='{schedule}' tz='{tz}' db={db}",
     "language_loaded": "Sprache geladen: {language} (Ordner: {directory})",
-    "cron_running": "Cron-Job wird ausgefuehrt.",
+    "cron_running": "Cron-Job wird ausgeführt.",
     "cron_error": "Fehler beim Cron-Job: {error}",
     "bot_ready": "Bot bereit: {user} ({user_id})",
     "awake": "Bot ist gestartet.",
     "scheduler_started": "Scheduler gestartet.",
     "db_init_error": "Fehler bei der Datenbank-Initialisierung: {error}",
-    "messages_cleared": "Nachrichten geloescht.",
-    "delete_error": "Fehler beim Loeschen von Nachrichten: {error}",
-    "notify_subscribe": "Benachrichtigung aktiviert fuer Nutzer: {user}"
+    "commands_synced": "Slash-Commands synchronisiert: {count}",
+    "commands_sync_error": "Fehler beim Synchronisieren der Slash-Commands: {error}",
+    "messages_cleared": "Nachrichten gelöscht.",
+    "delete_error": "Fehler beim Löschen von Nachrichten: {error}",
+    "notify_subscribe": "Benachrichtigung aktiviert für Nutzer: {user}"
   },
   "embed": {
-    "_comment": "Embed titles and fields",
+    "_comment": "Embed-Titel und Felder",
     "dresscode_title": "Dresscode am Sonntag",
-    "next_theme": "Naechstes Motto",
+    "next_theme": "Nächstes Motto",
     "submitted_by": "Eingereicht von",
     "themes_count": "Mottos in Hashoms Kiste",
     "no_themes_available": "Es tut mir leid Reisender, aktuell sind alle Mottos aufgebraucht.",
@@ -24,16 +26,23 @@
     "all_themes_title": "Wer hat was eingereicht"
   },
   "presence": {
-    "_comment": "Discord bot presence text",
+    "_comment": "Discord-Bot-Statusanzeige",
     "theme": "Motto: {theme}",
     "no_themes": "Mottos aufgebraucht"
   },
   "msg": {
-    "_comment": "Command responses and error messages",
+    "_comment": "Befehlsantworten und Fehlermeldungen",
     "tmnew_success": "{user} hat das Motto |{theme}| eingereicht.",
     "tmnew_duplicate": "Sorry {user}, das Motto |{theme}| wurde schon eingereicht.",
     "tmnew_error": "Fehler beim Einreichen des Mottos: {error}",
     "tmnew_missing_arg": "Bitte gib ein Motto mit an.",
+    "tmdelete_no_channel": "Kein Channel-Kontext verfügbar.",
+    "tmdelete_success": "Nachrichten gelöscht: {count}",
+    "tmdelete_error": "Fehler beim Löschen von Nachrichten: {error}",
+    "tmdelete_admin_only": "Du brauchst Administrator-Rechte für diesen Befehl.",
+    "tmdelete_no_dm": "Dieser Befehl kann nur in einem Server verwendet werden.",
+    "target_channel_missing": "Ziel-Channel konnte nicht gefunden werden.",
+    "sent_to_channel": "Ausgabe wurde in den Ziel-Channel gesendet.",
     "tmuser_error": "Fehler beim Abrufen der Benutzerdaten: {error}",
     "tmall_error": "Fehler beim Abrufen der Mottos: {error}",
     "tmon_success": "Ausgabe aktiviert.",
@@ -47,11 +56,43 @@
     "tmhelp_error": "Fehler beim Ausgeben der Hilfe: {error}"
   },
   "help": {
-    "_comment": "Help command lines",
+    "_comment": "Hilfezeilen für den Befehl",
     "line1": "Du möchtest meine Hilfe?",
-    "line2": "Mit z.B. `!tmnew |Name des Mottos| (ohne die Sonderzeichen)` kannst du etwas Neues einreichen.",
-    "line3": "Mit `!tmuser` kannst du dir ausgeben lassen, wer wie viele Mottos eingereicht hat.",
-    "line4": "Mit `!tmall` kannst du dir alle aktuellen Mottos auf der Liste ausgeben lassen.",
-    "line5": "Mit `!tmnotify` kannst du dir eine Benachrichtigung einrichten und mit `!tmnotifyoff` wieder abschalten."
+    "line2": "Mit `/tmnew` kannst du ein neues Motto einreichen.",
+    "line3": "Mit `/tmuser` kannst du dir ausgeben lassen, wer wie viele Mottos eingereicht hat.",
+    "line4": "Mit `/tmall` kannst du dir alle aktuellen Mottos auf der Liste ausgeben lassen.",
+    "line5": "Mit `/tmnotify` kannst du dir eine Benachrichtigung einrichten und mit `/tmnotifyoff` wieder abschalten."
+  },
+  "cmd": {
+    "_comment": "Beschreibungen der Slash-Befehle",
+    "tmnew": {
+      "description": "Ein neues Motto einreichen.",
+      "arg": "Motto zum Einreichen"
+    },
+    "tmdelete": {
+      "description": "Letzte Nachrichten im aktuellen Channel löschen.",
+      "limit": "Wie viele letzte Nachrichten gelöscht werden sollen"
+    },
+    "tmuser": {
+      "description": "Zeigt, wie viele Mottos jeder Nutzer eingereicht hat."
+    },
+    "tmall": {
+      "description": "Listet alle aktuell ungenutzten Mottos auf."
+    },
+    "tmon": {
+      "description": "Aktiviert die geplante Ausgabe."
+    },
+    "tmoff": {
+      "description": "Deaktiviert die geplante Ausgabe."
+    },
+    "tmnotify": {
+      "description": "Aktiviert Benachrichtigungen für dich."
+    },
+    "tmnotifyoff": {
+      "description": "Deaktiviert Benachrichtigungen für dich."
+    },
+    "tmhelp": {
+      "description": "Zeigt die verfügbaren Bot-Befehle."
+    }
   }
 }

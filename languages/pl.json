@@ -1,0 +1,98 @@
+{
+  "log": {
+    "_comment": "Komunikaty logowania",
+    "cron_config": "Konfiguracja cron: schedule='{schedule}' tz='{tz}' db={db}",
+    "language_loaded": "Zaladowano jezyk: {language} (folder: {directory})",
+    "cron_running": "Zadanie cron jest uruchomione.",
+    "cron_error": "Blad podczas uruchamiania zadania cron: {error}",
+    "bot_ready": "Bot gotowy: {user} ({user_id})",
+    "awake": "Bot uruchomiony.",
+    "scheduler_started": "Scheduler uruchomiony.",
+    "db_init_error": "Blad podczas inicjalizacji bazy danych: {error}",
+    "commands_synced": "Komendy slash zsynchronizowane: {count}",
+    "commands_sync_error": "Blad podczas synchronizacji komend slash: {error}",
+    "messages_cleared": "Wiadomosci usuniete.",
+    "delete_error": "Blad usuwania wiadomosci: {error}",
+    "notify_subscribe": "Powiadomienia wlaczone dla uzytkownika: {user}"
+  },
+  "embed": {
+    "_comment": "Tytuly i pola embeda",
+    "dresscode_title": "Dresscode na niedziele",
+    "next_theme": "Nastepny motyw",
+    "submitted_by": "Dodane przez",
+    "themes_count": "Motywy pozostale w skrzyni Hashoma",
+    "no_themes_available": "Przykro mi podrozniku, obecnie nie ma juz dostepnych motywow.",
+    "user_count_title": "Kto ile dodal",
+    "all_themes_title": "Kto co dodal"
+  },
+  "presence": {
+    "_comment": "Tekst statusu bota Discord",
+    "theme": "Motyw: {theme}",
+    "no_themes": "Brak motywow"
+  },
+  "msg": {
+    "_comment": "Odpowiedzi komend i komunikaty bledow",
+    "tmnew_success": "{user} dodal motyw |{theme}|.",
+    "tmnew_duplicate": "Przykro mi {user}, motyw |{theme}| zostal juz dodany.",
+    "tmnew_error": "Blad podczas dodawania motywu: {error}",
+    "tmnew_missing_arg": "Podaj prosze motyw.",
+    "tmdelete_no_channel": "Brak kontekstu kanalu.",
+    "tmdelete_success": "Usuniete wiadomosci: {count}",
+    "tmdelete_error": "Blad usuwania wiadomosci: {error}",
+    "tmdelete_admin_only": "Potrzebujesz uprawnien administratora, aby uzyc tej komendy.",
+    "tmdelete_no_dm": "Ta komenda moze byc uzywana tylko na serwerze.",
+    "target_channel_missing": "Nie znaleziono docelowego kanalu.",
+    "sent_to_channel": "Wynik zostal wyslany do docelowego kanalu.",
+    "tmuser_error": "Blad podczas ladowania danych uzytkownikow: {error}",
+    "tmall_error": "Blad podczas ladowania motywow: {error}",
+    "tmon_success": "Wysylanie wlaczone.",
+    "tmon_error": "Nie udalo sie wlaczyc wysylania: {error}",
+    "tmoff_success": "Wysylanie wylaczone.",
+    "tmoff_error": "Nie udalo sie wylaczyc wysylania: {error}",
+    "tmnotify_success": "Powiadomienia wlaczone.",
+    "tmnotify_error": "Nie udalo sie wlaczyc powiadomien: {error}",
+    "tmnotifyoff_success": "Powiadomienia wylaczone.",
+    "tmnotifyoff_error": "Nie udalo sie wylaczyc powiadomien: {error}",
+    "tmhelp_error": "Blad podczas wyswietlania pomocy: {error}"
+  },
+  "help": {
+    "_comment": "Wiersze pomocy komendy",
+    "line1": "Potrzebujesz mojej pomocy?",
+    "line2": "Uzyj `/tmnew`, aby dodac nowy motyw.",
+    "line3": "Uzyj `/tmuser`, aby zobaczyc kto ile motywow dodal.",
+    "line4": "Uzyj `/tmall`, aby wyswietlic wszystkie aktualne motywy.",
+    "line5": "Uzyj `/tmnotify`, aby wlaczyc powiadomienia, oraz `/tmnotifyoff`, aby je wylaczyc."
+  },
+  "cmd": {
+    "_comment": "Opisy komend slash",
+    "tmnew": {
+      "description": "Dodaj nowy motyw.",
+      "arg": "Motyw do dodania"
+    },
+    "tmdelete": {
+      "description": "Usun ostatnie wiadomosci w biezacym kanale.",
+      "limit": "Ile ostatnich wiadomosci usunac"
+    },
+    "tmuser": {
+      "description": "Pokaz ile motywow dodal kazdy uzytkownik."
+    },
+    "tmall": {
+      "description": "Wyswietl wszystkie aktualnie nieuzyte motywy."
+    },
+    "tmon": {
+      "description": "Wlacz zaplanowane wysylanie."
+    },
+    "tmoff": {
+      "description": "Wylacz zaplanowane wysylanie."
+    },
+    "tmnotify": {
+      "description": "Wlacz powiadomienia dla biezacego uzytkownika."
+    },
+    "tmnotifyoff": {
+      "description": "Wylacz powiadomienia dla biezacego uzytkownika."
+    },
+    "tmhelp": {
+      "description": "Pokaz dostepne komendy bota."
+    }
+  }
+}

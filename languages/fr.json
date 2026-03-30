@@ -1,0 +1,98 @@
+{
+  "log": {
+    "_comment": "Messages de journal",
+    "cron_config": "Configuration cron: schedule='{schedule}' tz='{tz}' db={db}",
+    "language_loaded": "Langue chargee: {language} (dossier: {directory})",
+    "cron_running": "La tache cron est en cours.",
+    "cron_error": "Erreur lors de l'execution de la tache cron: {error}",
+    "bot_ready": "Bot pret: {user} ({user_id})",
+    "awake": "Bot demarre.",
+    "scheduler_started": "Scheduler demarre.",
+    "db_init_error": "Erreur lors de l'initialisation de la base: {error}",
+    "commands_synced": "Commandes slash synchronisees: {count}",
+    "commands_sync_error": "Erreur lors de la synchronisation des commandes slash: {error}",
+    "messages_cleared": "Messages supprimes.",
+    "delete_error": "Erreur lors de la suppression des messages: {error}",
+    "notify_subscribe": "Notifications activees pour l'utilisateur: {user}"
+  },
+  "embed": {
+    "_comment": "Titres et champs de l'embed",
+    "dresscode_title": "Code vestimentaire du dimanche",
+    "next_theme": "Theme suivant",
+    "submitted_by": "Propose par",
+    "themes_count": "Themes restants dans la boite de Hashom",
+    "no_themes_available": "Desole voyageur, il n'y a plus de themes disponibles.",
+    "user_count_title": "Qui a propose combien",
+    "all_themes_title": "Qui a propose quoi"
+  },
+  "presence": {
+    "_comment": "Texte de presence du bot Discord",
+    "theme": "Theme: {theme}",
+    "no_themes": "Plus de themes"
+  },
+  "msg": {
+    "_comment": "Reponses de commandes et messages d'erreur",
+    "tmnew_success": "{user} a propose le theme |{theme}|.",
+    "tmnew_duplicate": "Desole {user}, le theme |{theme}| a deja ete propose.",
+    "tmnew_error": "Erreur lors de l'envoi du theme: {error}",
+    "tmnew_missing_arg": "Merci de fournir un theme.",
+    "tmdelete_no_channel": "Aucun contexte de salon disponible.",
+    "tmdelete_success": "Messages supprimes: {count}",
+    "tmdelete_error": "Erreur lors de la suppression des messages: {error}",
+    "tmdelete_admin_only": "Vous avez besoin des permissions administrateur pour cette commande.",
+    "tmdelete_no_dm": "Cette commande peut etre utilisee uniquement sur un serveur.",
+    "target_channel_missing": "Impossible de trouver le salon cible.",
+    "sent_to_channel": "La sortie a ete envoyee dans le salon cible.",
+    "tmuser_error": "Erreur lors du chargement des donnees utilisateurs: {error}",
+    "tmall_error": "Erreur lors du chargement des themes: {error}",
+    "tmon_success": "Sortie activee.",
+    "tmon_error": "Echec de l'activation de la sortie: {error}",
+    "tmoff_success": "Sortie desactivee.",
+    "tmoff_error": "Echec de la desactivation de la sortie: {error}",
+    "tmnotify_success": "Notification activee.",
+    "tmnotify_error": "Echec de l'activation de la notification: {error}",
+    "tmnotifyoff_success": "Notification desactivee.",
+    "tmnotifyoff_error": "Echec de la desactivation de la notification: {error}",
+    "tmhelp_error": "Erreur lors de l'affichage de l'aide: {error}"
+  },
+  "help": {
+    "_comment": "Lignes d'aide de la commande",
+    "line1": "Besoin d'aide?",
+    "line2": "Utilisez `/tmnew` pour proposer un nouveau theme.",
+    "line3": "Utilisez `/tmuser` pour voir qui a propose combien de themes.",
+    "line4": "Utilisez `/tmall` pour lister tous les themes actuels.",
+    "line5": "Utilisez `/tmnotify` pour activer les notifications et `/tmnotifyoff` pour les desactiver."
+  },
+  "cmd": {
+    "_comment": "Descriptions des commandes slash",
+    "tmnew": {
+      "description": "Proposer un nouveau theme.",
+      "arg": "Theme a proposer"
+    },
+    "tmdelete": {
+      "description": "Supprimer les messages recents dans le salon actuel.",
+      "limit": "Combien de messages recents supprimer"
+    },
+    "tmuser": {
+      "description": "Afficher le nombre de themes proposes par utilisateur."
+    },
+    "tmall": {
+      "description": "Lister tous les themes actuellement inutilises."
+    },
+    "tmon": {
+      "description": "Activer la sortie planifiee."
+    },
+    "tmoff": {
+      "description": "Desactiver la sortie planifiee."
+    },
+    "tmnotify": {
+      "description": "Activer les notifications pour l'utilisateur actuel."
+    },
+    "tmnotifyoff": {
+      "description": "Desactiver les notifications pour l'utilisateur actuel."
+    },
+    "tmhelp": {
+      "description": "Afficher les commandes disponibles du bot."
+    }
+  }
+}
