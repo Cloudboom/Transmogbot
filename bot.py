@@ -262,7 +262,7 @@ async def tmhelp(ctx):
         await ctx.send("Mit z.B. `!tmnew |Name des Mottos| (ohne die Sonderzeichen))` kannst du etwas Neues einreichen.")
         await ctx.send("Mit `!tmuser` kannst du dir ausgeben lassen, wer wie viele Mottos eingereicht hat.")
         await ctx.send("Mit `!tmall` kannst du dir alle aktuellen Mottos auf der Liste ausgeben lassen.")
-        await ctx.send("Mit `!tmnotify` kannst du dir eine Benachrichtigung einrichten.")
+        await ctx.send("Mit `!tmnotify` kannst du dir eine Benachrichtigung einrichten und mit `!tmnotifyoff` wieder abschalten.")
         await ctx.message.delete()
     except Exception as e:
         await ctx.send(f"Fehler beim Ausgeben der Hilfe: {e}")
