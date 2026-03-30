@@ -45,8 +45,8 @@ async def cronjob():
                 if result:
                     result = result[0]
                     async with db.execute("SELECT user FROM themes WHERE theme = ?", (result,)) as cursor:
-                        user = await cursor.fetchone()
-                    user = user[0]
+                        submitted_by = await cursor.fetchone()
+                    submitted_by = submitted_by[0]
                     await db.execute("UPDATE themes SET state = 'used' WHERE theme = ?", (result,))
                     await db.commit()
                     async with db.execute("SELECT COUNT(theme) FROM themes WHERE state = 'unused'") as cursor:
@@ -54,15 +54,22 @@ async def cronjob():
                     count = count[0]
 
                     async with db.execute("SELECT user FROM notification") as cursor:
-                        mention_users = await cursor.fetchall()
-                    mentions = " ".join([f"<@{user[0]}>" for user in mention_users])  # Assuming 'user' is a Discord ID    
+                        notification_users = await cursor.fetchall()
 
                     embed = discord.Embed(title="Dresscode am Sonntag", color=discord.Color.purple())
                     embed.add_field(name="Nächstes Motto", value=result, inline=False)
-                    embed.add_field(name="Eingereicht von", value=user, inline=False)
+                    embed.add_field(name="Eingereicht von", value=submitted_by, inline=False)
                     embed.add_field(name="Mottos in Hashoms Kiste", value=count, inline=False)
                     await bot.change_presence(activity=discord.Game(name=f"Motto: {result}"))
-                    await channel.send(f"{mentions}", embed=embed)
+                    await channel.send(embed=embed)
+
+                    for notify_user in notification_users:
+                        try:
+                            user_id = int(notify_user[0])
+                            discord_user = bot.get_user(user_id) or await bot.fetch_user(user_id)
+                            await discord_user.send("Neues Motto wurde ausgewaehlt:", embed=embed)
+                        except Exception as dm_error:
+                            logging.warning("Could not send DM to user %s: %s", notify_user[0], dm_error)
                 else:
                     embed = discord.Embed(title="Dresscode am Sonntag", color=discord.Color.purple())
                     embed.add_field(name="Nächstes Motto", value="Es tut mir leid Reisender, aktuell sind alle Mottos aufgebraucht.", inline=False)
@@ -236,7 +243,7 @@ async def tmnotify(ctx):
         async with aiosqlite.connect(db_path) as db:
             await db.execute("INSERT OR REPLACE INTO notification (user) VALUES (?)", (ctx.message.author.id,))
             await db.commit()
-            await ctx.send("Benachrichtigung eingerichtet.")
+            await ctx.send("Benachrichtigung per DM eingerichtet.")
             
     except Exception as e:
         await ctx.send(f"Einrichten fehlgeschlagen: {e}")   
@@ -249,7 +256,7 @@ async def tmnotify(ctx):
         async with aiosqlite.connect(db_path) as db:
             await db.execute("DELETE FROM notification WHERE user = ?", (ctx.message.author.id,))
             await db.commit()
-            await ctx.send("Benachrichtigung abgeschaltet.")
+            await ctx.send("DM-Benachrichtigung abgeschaltet.")
             
     except Exception as e:
         await ctx.send(f"Deaktivieren fehlgeschlagen: {e}")           
