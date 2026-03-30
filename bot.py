@@ -4,7 +4,9 @@ import aiosqlite
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from dotenv import load_dotenv
+import json
 import os
+from pathlib import Path
 from pytz import timezone
 import logging
 
@@ -15,13 +17,77 @@ bot_token=os.getenv('BOT_TOKEN')
 cron_schedule=os.getenv('CRON_SCHEDULE', '0 5 * * 3')
 crontz = os.getenv('CRON_TZ', 'UTC')
 db_path = os.getenv('DB_PATH', '/main.sqlite')
+language_code = os.getenv('LANGUAGE', 'en')
+
+LANGUAGE_DIR = Path(__file__).resolve().parent / "languages"
+
+
+def _read_language_file(code):
+    path = LANGUAGE_DIR / f"{code}.json"
+    if not path.exists():
+        return {}
+    try:
+        with path.open("r", encoding="utf-8") as file:
+            data = json.load(file)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _resolve_language(code):
+    requested = (code or "en").strip().lower().replace("_", "-")
+    default_messages = _read_language_file("en")
+
+    candidates = [requested]
+    if "-" in requested:
+        candidates.append(requested.split("-")[0])
+    candidates.append("en")
+
+    seen = set()
+    for candidate in candidates:
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        messages = _read_language_file(candidate)
+        if messages:
+            return candidate, messages, default_messages
+
+    if default_messages:
+        return "en", default_messages, default_messages
+    return requested, {}, {}
+
+
+active_language, language_messages, default_messages = _resolve_language(language_code)
+
+
+def _lookup_message(messages, key):
+    if not isinstance(messages, dict):
+        return None
+
+    direct = messages.get(key)
+    if isinstance(direct, str):
+        return direct
+
+    node = messages
+    for part in key.split("."):
+        if not isinstance(node, dict) or part not in node:
+            return None
+        node = node[part]
+
+    return node if isinstance(node, str) else None
+
+
+def t(key, **kwargs):
+    template = _lookup_message(language_messages, key) or _lookup_message(default_messages, key) or key
+    try:
+        return template.format(**kwargs)
+    except Exception:
+        return template
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [%(name)s] %(message)s")
 logging.getLogger("apscheduler").setLevel(logging.INFO)
-logging.info(
-    "Cron config: schedule=%r tz=%r db=%s",
-    cron_schedule, crontz, db_path
-)
+logging.info(t("log.cron_config", schedule=cron_schedule, tz=crontz, db=db_path))
+logging.info(t("log.language_loaded", language=active_language, directory=LANGUAGE_DIR))
 
 # Create the intents and activate the needed ones.
 intents = discord.Intents.default()
@@ -32,7 +98,7 @@ bot = commands.Bot(command_prefix = '!', intents=intents)
 
 #Output
 async def cronjob():
-    print("Cron-Job is running.") 
+    logging.info(t("log.cron_running"))
     try:
         channel = bot.get_channel(channel_id)
         async with aiosqlite.connect(db_path) as db:
@@ -45,8 +111,8 @@ async def cronjob():
                 if result:
                     result = result[0]
                     async with db.execute("SELECT user FROM themes WHERE theme = ?", (result,)) as cursor:
-                        submitted_by = await cursor.fetchone()
-                    submitted_by = submitted_by[0]
+                        user = await cursor.fetchone()
+                    user = user[0]
                     await db.execute("UPDATE themes SET state = 'used' WHERE theme = ?", (result,))
                     await db.commit()
                     async with db.execute("SELECT COUNT(theme) FROM themes WHERE state = 'unused'") as cursor:
@@ -54,29 +120,22 @@ async def cronjob():
                     count = count[0]
 
                     async with db.execute("SELECT user FROM notification") as cursor:
-                        notification_users = await cursor.fetchall()
+                        mention_users = await cursor.fetchall()
+                    mentions = " ".join([f"<@{user[0]}>" for user in mention_users])  # Assuming 'user' is a Discord ID    
 
-                    embed = discord.Embed(title="Dresscode am Sonntag", color=discord.Color.purple())
-                    embed.add_field(name="Nächstes Motto", value=result, inline=False)
-                    embed.add_field(name="Eingereicht von", value=submitted_by, inline=False)
-                    embed.add_field(name="Mottos in Hashoms Kiste", value=count, inline=False)
-                    await bot.change_presence(activity=discord.Game(name=f"Motto: {result}"))
-                    await channel.send(embed=embed)
-
-                    for notify_user in notification_users:
-                        try:
-                            user_id = int(notify_user[0])
-                            discord_user = bot.get_user(user_id) or await bot.fetch_user(user_id)
-                            await discord_user.send("Neues Motto wurde ausgewaehlt:", embed=embed)
-                        except Exception as dm_error:
-                            logging.warning("Could not send DM to user %s: %s", notify_user[0], dm_error)
+                    embed = discord.Embed(title=t("embed.dresscode_title"), color=discord.Color.purple())
+                    embed.add_field(name=t("embed.next_theme"), value=result, inline=False)
+                    embed.add_field(name=t("embed.submitted_by"), value=user, inline=False)
+                    embed.add_field(name=t("embed.themes_count"), value=count, inline=False)
+                    await bot.change_presence(activity=discord.Game(name=t("presence.theme", theme=result)))
+                    await channel.send(f"{mentions}", embed=embed)
                 else:
-                    embed = discord.Embed(title="Dresscode am Sonntag", color=discord.Color.purple())
-                    embed.add_field(name="Nächstes Motto", value="Es tut mir leid Reisender, aktuell sind alle Mottos aufgebraucht.", inline=False)
-                    await bot.change_presence(activity=discord.Game(name="Mottos aufgebraucht"))
+                    embed = discord.Embed(title=t("embed.dresscode_title"), color=discord.Color.purple())
+                    embed.add_field(name=t("embed.next_theme"), value=t("embed.no_themes_available"), inline=False)
+                    await bot.change_presence(activity=discord.Game(name=t("presence.no_themes")))
                     await channel.send(embed=embed)
     except Exception as e:
-        print(f"Error while running the cronjob: {e}")
+        logging.error(t("log.cron_error", error=e))
 
 # Scheduler creation
 scheduler = AsyncIOScheduler(
@@ -100,7 +159,7 @@ async def on_ready():
     if getattr(bot, "_ready_once", False):
         return
     bot._ready_once = True
-    print("I am", bot.user, bot.user.id)
+    logging.info(t("log.bot_ready", user=bot.user, user_id=bot.user.id))
     try:
         async with aiosqlite.connect(db_path) as db:
 
@@ -133,13 +192,13 @@ async def on_ready():
             ''')
 
             await db.commit()
-        print('Im awake.')
+        logging.info(t("log.awake"))
         register_jobs_once()
         if not scheduler.running:
             scheduler.start()
-            print("Scheduler started.")
+            logging.info(t("log.scheduler_started"))
     except Exception as e:
-        print(f"Error initializing the database: {e}")
+        logging.error(t("log.db_init_error", error=e))
 
 #Adding new event
 @bot.command(pass_context=True)    
@@ -151,17 +210,23 @@ async def tmnew(ctx, *, arg):
             if result is None:
                 await db.execute("INSERT INTO themes(state, theme, user) VALUES ('unused', ?, ?)", (arg, ctx.message.author.global_name))
                 await db.commit()
-                await ctx.send(f"{ctx.message.author.global_name} hat das Motto |{arg}| eingereicht.", delete_after=60)
+                await ctx.send(
+                    t("msg.tmnew_success", user=ctx.message.author.global_name, theme=arg),
+                    delete_after=60
+                )
             else:
-                await ctx.send(f"Sorry {ctx.message.author.global_name}, das Motto wurde schon eingereicht.", delete_after=60)
+                await ctx.send(
+                    t("msg.tmnew_duplicate", user=ctx.message.author.global_name, theme=arg),
+                    delete_after=60
+                )
         await ctx.message.delete()
     except Exception as e:
-        await ctx.send(f"Fehler beim Einreichen des Mottos: {e}")    
+        await ctx.send(t("msg.tmnew_error", error=e))
 
 @tmnew.error 
 async def tmnew_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send("Bitte gib ein Motto mit an.")
+        await ctx.send(t("msg.tmnew_missing_arg"))
 
 #Delete messages in chat
 @bot.command()
@@ -169,9 +234,9 @@ async def tmdelete(ctx, limit: int = None):
     try: 
         async for msg in ctx.message.channel.history(limit=limit):
             await msg.delete()
-        print(f"Cleared")
+        logging.info(t("log.messages_cleared"))
     except Exception as e:
-        print(f"Error on deleting messages: {e}")    
+        logging.error(t("log.delete_error", error=e))
 
 #List themes for user
 @bot.command()
@@ -181,13 +246,13 @@ async def tmuser(ctx):
         async with aiosqlite.connect(db_path) as db:
             async with db.execute("SELECT user, COUNT(theme) FROM themes WHERE state = 'unused' GROUP BY user") as cursor:
                 result = await cursor.fetchall()
-        embed = discord.Embed(title="Wer hat wie viel eingereicht", color=discord.Color.green())
+        embed = discord.Embed(title=t("embed.user_count_title"), color=discord.Color.green())
         for user, count in result:
             embed.add_field(name=user, value=str(count), inline=False)
         await channel.send(embed=embed)
         await ctx.message.delete()
     except Exception as e:
-        await ctx.send(f"Fehler beim Abrufen der Benutzerdaten: {e}")
+        await ctx.send(t("msg.tmuser_error", error=e))
 
 #List all themes
 @bot.command(name='tmall')
@@ -197,13 +262,13 @@ async def tmall(ctx):
         async with aiosqlite.connect(db_path) as db:
             async with db.execute("SELECT user, theme FROM themes WHERE state = 'unused'") as cursor:
                 result = await cursor.fetchall()
-        embed = discord.Embed(title="Wer hat was eingereicht", color=discord.Color.gold())
+        embed = discord.Embed(title=t("embed.all_themes_title"), color=discord.Color.gold())
         for user, theme in result:
             embed.add_field(name=user, value=theme, inline=False)
         await channel.send(embed=embed)
         await ctx.message.delete()
     except Exception as e:
-        await ctx.send(f"Fehler beim Abrufen der Mottos: {e}")
+        await ctx.send(t("msg.tmall_error", error=e))
 
 #Turn output on
 @bot.command(name='tmon')
@@ -212,10 +277,10 @@ async def tmon(ctx):
         async with aiosqlite.connect(db_path) as db:
             await db.execute("UPDATE settings SET output_active = 1")
             await db.commit()
-            await ctx.send("Ausgabe aktiviert.")
+            await ctx.send(t("msg.tmon_success"))
             
     except Exception as e:
-        await ctx.send(f"Aktivieren fehlgeschlagen: {e}")   
+        await ctx.send(t("msg.tmon_error", error=e))
 
 #Turn output off
 @bot.command(name='tmoff')
@@ -224,23 +289,23 @@ async def tmoff(ctx):
         async with aiosqlite.connect(db_path) as db:
             await db.execute("UPDATE settings SET output_active = 0")
             await db.commit()
-            await ctx.send("Ausgabe abgeschaltet.")
+            await ctx.send(t("msg.tmoff_success"))
             
     except Exception as e:
-        await ctx.send(f"Abschalten fehlgeschlagen: {e}")    
+        await ctx.send(t("msg.tmoff_error", error=e))
 
 #Add user to notification
 @bot.command(name='tmnotify')
 async def tmnotify(ctx):
     try:
-        print(ctx.message.author.global_name)
+        logging.info(t("log.notify_subscribe", user=ctx.message.author.global_name))
         async with aiosqlite.connect(db_path) as db:
             await db.execute("INSERT OR REPLACE INTO notification (user) VALUES (?)", (ctx.message.author.id,))
             await db.commit()
-            await ctx.send("Benachrichtigung per DM eingerichtet.")
+            await ctx.send(t("msg.tmnotify_success"))
             
     except Exception as e:
-        await ctx.send(f"Einrichten fehlgeschlagen: {e}")   
+        await ctx.send(t("msg.tmnotify_error", error=e))
 
 #Remove user from notification
 @bot.command(name='tmnotifyoff')
@@ -249,22 +314,22 @@ async def tmnotifyoff(ctx):
         async with aiosqlite.connect(db_path) as db:
             await db.execute("DELETE FROM notification WHERE user = ?", (ctx.message.author.id,))
             await db.commit()
-            await ctx.send("DM-Benachrichtigung abgeschaltet.")
+            await ctx.send(t("msg.tmnotifyoff_success"))
             
     except Exception as e:
-        await ctx.send(f"Deaktivieren fehlgeschlagen: {e}")           
+        await ctx.send(t("msg.tmnotifyoff_error", error=e))
 
 #Help
 @bot.command()    
 async def tmhelp(ctx):
     try:    
-        await ctx.send("Du möchtest meine Hilfe?")
-        await ctx.send("Mit z.B. `!tmnew |Name des Mottos| (ohne die Sonderzeichen))` kannst du etwas Neues einreichen.")
-        await ctx.send("Mit `!tmuser` kannst du dir ausgeben lassen, wer wie viele Mottos eingereicht hat.")
-        await ctx.send("Mit `!tmall` kannst du dir alle aktuellen Mottos auf der Liste ausgeben lassen.")
-        await ctx.send("Mit `!tmnotify` kannst du dir eine Benachrichtigung einrichten und mit `!tmnotifyoff` wieder abschalten.")
+        await ctx.send(t("help.line1"))
+        await ctx.send(t("help.line2"))
+        await ctx.send(t("help.line3"))
+        await ctx.send(t("help.line4"))
+        await ctx.send(t("help.line5"))
         await ctx.message.delete()
     except Exception as e:
-        await ctx.send(f"Fehler beim Ausgeben der Hilfe: {e}")
+        await ctx.send(t("msg.tmhelp_error", error=e))
 
 bot.run(bot_token)

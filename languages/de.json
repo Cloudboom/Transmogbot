@@ -1,0 +1,57 @@
+{
+  "log": {
+    "_comment": "Logging messages",
+    "cron_config": "Cron-Konfiguration: schedule='{schedule}' tz='{tz}' db={db}",
+    "language_loaded": "Sprache geladen: {language} (Ordner: {directory})",
+    "cron_running": "Cron-Job wird ausgefuehrt.",
+    "cron_error": "Fehler beim Cron-Job: {error}",
+    "bot_ready": "Bot bereit: {user} ({user_id})",
+    "awake": "Bot ist gestartet.",
+    "scheduler_started": "Scheduler gestartet.",
+    "db_init_error": "Fehler bei der Datenbank-Initialisierung: {error}",
+    "messages_cleared": "Nachrichten geloescht.",
+    "delete_error": "Fehler beim Loeschen von Nachrichten: {error}",
+    "notify_subscribe": "Benachrichtigung aktiviert fuer Nutzer: {user}"
+  },
+  "embed": {
+    "_comment": "Embed titles and fields",
+    "dresscode_title": "Dresscode am Sonntag",
+    "next_theme": "Naechstes Motto",
+    "submitted_by": "Eingereicht von",
+    "themes_count": "Mottos in Hashoms Kiste",
+    "no_themes_available": "Es tut mir leid Reisender, aktuell sind alle Mottos aufgebraucht.",
+    "user_count_title": "Wer hat wie viel eingereicht",
+    "all_themes_title": "Wer hat was eingereicht"
+  },
+  "presence": {
+    "_comment": "Discord bot presence text",
+    "theme": "Motto: {theme}",
+    "no_themes": "Mottos aufgebraucht"
+  },
+  "msg": {
+    "_comment": "Command responses and error messages",
+    "tmnew_success": "{user} hat das Motto |{theme}| eingereicht.",
+    "tmnew_duplicate": "Sorry {user}, das Motto |{theme}| wurde schon eingereicht.",
+    "tmnew_error": "Fehler beim Einreichen des Mottos: {error}",
+    "tmnew_missing_arg": "Bitte gib ein Motto mit an.",
+    "tmuser_error": "Fehler beim Abrufen der Benutzerdaten: {error}",
+    "tmall_error": "Fehler beim Abrufen der Mottos: {error}",
+    "tmon_success": "Ausgabe aktiviert.",
+    "tmon_error": "Aktivieren fehlgeschlagen: {error}",
+    "tmoff_success": "Ausgabe abgeschaltet.",
+    "tmoff_error": "Abschalten fehlgeschlagen: {error}",
+    "tmnotify_success": "Benachrichtigung eingerichtet.",
+    "tmnotify_error": "Einrichten fehlgeschlagen: {error}",
+    "tmnotifyoff_success": "Benachrichtigung abgeschaltet.",
+    "tmnotifyoff_error": "Deaktivieren fehlgeschlagen: {error}",
+    "tmhelp_error": "Fehler beim Ausgeben der Hilfe: {error}"
+  },
+  "help": {
+    "_comment": "Help command lines",
+    "line1": "Du möchtest meine Hilfe?",
+    "line2": "Mit z.B. `!tmnew |Name des Mottos| (ohne die Sonderzeichen)` kannst du etwas Neues einreichen.",
+    "line3": "Mit `!tmuser` kannst du dir ausgeben lassen, wer wie viele Mottos eingereicht hat.",
+    "line4": "Mit `!tmall` kannst du dir alle aktuellen Mottos auf der Liste ausgeben lassen.",
+    "line5": "Mit `!tmnotify` kannst du dir eine Benachrichtigung einrichten und mit `!tmnotifyoff` wieder abschalten."
+  }
+}
