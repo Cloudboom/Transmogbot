@@ -4,12 +4,14 @@ A Discord bot for collecting transmog themes and selecting one automatically on 
 
 ## Features
 
-- Submit new themes with `!tmnew <theme>`.
+- Submit new themes with `/tmnew`.
 - Weekly/random theme selection via cron.
-- See all themes with `!tmall`.
-- See submission counts with `!tmuser`.
-- Enable/disable notifications with `!tmnotify` and `!tmnotifyoff`.
-- Toggle output with `!tmon` and `!tmoff`.
+- See all themes with `/tmall`.
+- See submission counts with `/tmuser`.
+- Enable/disable notifications with `/tmnotify` and `/tmnotifyoff`.
+- Toggle output with `/tmon` and `/tmoff`.
+- Commands are slash-only (`/`).
+- Slash command descriptions are localized (DE/EN) based on the Discord client language.
 
 ## Environment
 
@@ -47,4 +49,4 @@ docker compose pull
 docker compose up -d
 ```
 
-`LANGUAGE` supports `de` and `en` (default: `en`).
+`LANGUAGE` supports `en`, `de`, `es`, `fr`, `it`, `pt`, `nl`, `pl` (default: `en`).
