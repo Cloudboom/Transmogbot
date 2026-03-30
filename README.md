@@ -31,6 +31,7 @@ services:
     restart: unless-stopped
     environment:
       PYTHONUNBUFFERED: "1"
+      LANGUAGE: en
       DB_PATH: /data/main.sqlite
       CRON_SCHEDULE: "0 19 * * 0"
       CRON_TZ: YOUR_TIMEZONE
@@ -45,3 +46,5 @@ services:
 docker compose pull
 docker compose up -d
 ```
+
+`LANGUAGE` supports `de` and `en` (default: `en`).

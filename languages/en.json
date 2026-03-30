@@ -1,0 +1,57 @@
+{
+  "log": {
+    "_comment": "Logging messages",
+    "cron_config": "Cron config: schedule='{schedule}' tz='{tz}' db={db}",
+    "language_loaded": "Language loaded: {language} (directory: {directory})",
+    "cron_running": "Cron job is running.",
+    "cron_error": "Error while running cron job: {error}",
+    "bot_ready": "Bot ready: {user} ({user_id})",
+    "awake": "Bot started.",
+    "scheduler_started": "Scheduler started.",
+    "db_init_error": "Error initializing database: {error}",
+    "messages_cleared": "Messages cleared.",
+    "delete_error": "Error deleting messages: {error}",
+    "notify_subscribe": "Notifications enabled for user: {user}"
+  },
+  "embed": {
+    "_comment": "Embed titles and fields",
+    "dresscode_title": "Dress code on Sunday",
+    "next_theme": "Next theme",
+    "submitted_by": "Submitted by",
+    "themes_count": "Themes left in Hashom's box",
+    "no_themes_available": "Sorry traveler, all themes are currently used up.",
+    "user_count_title": "Who submitted how many",
+    "all_themes_title": "Who submitted what"
+  },
+  "presence": {
+    "_comment": "Discord bot presence text",
+    "theme": "Theme: {theme}",
+    "no_themes": "No themes left"
+  },
+  "msg": {
+    "_comment": "Command responses and error messages",
+    "tmnew_success": "{user} submitted the theme |{theme}|.",
+    "tmnew_duplicate": "Sorry {user}, the theme |{theme}| was already submitted.",
+    "tmnew_error": "Error while submitting theme: {error}",
+    "tmnew_missing_arg": "Please provide a theme.",
+    "tmuser_error": "Error while loading user data: {error}",
+    "tmall_error": "Error while loading themes: {error}",
+    "tmon_success": "Output enabled.",
+    "tmon_error": "Enabling output failed: {error}",
+    "tmoff_success": "Output disabled.",
+    "tmoff_error": "Disabling output failed: {error}",
+    "tmnotify_success": "Notification enabled.",
+    "tmnotify_error": "Enabling notification failed: {error}",
+    "tmnotifyoff_success": "Notification disabled.",
+    "tmnotifyoff_error": "Disabling notification failed: {error}",
+    "tmhelp_error": "Error while showing help: {error}"
+  },
+  "help": {
+    "_comment": "Help command lines",
+    "line1": "You need my help?",
+    "line2": "With e.g. `!tmnew |theme name|` you can submit a new one.",
+    "line3": "With `!tmuser` you can see who submitted how many themes.",
+    "line4": "With `!tmall` you can list all current themes.",
+    "line5": "With `!tmnotify` you enable notifications and with `!tmnotifyoff` you disable them again."
+  }
+}
