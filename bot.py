@@ -196,8 +196,8 @@ async def cronjob():
                 if result:
                     result = result[0]
                     async with db.execute("SELECT user FROM themes WHERE theme = ?", (result,)) as cursor:
-                        user = await cursor.fetchone()
-                    user = user[0]
+                        submitted_by = await cursor.fetchone()
+                    submitted_by = submitted_by[0]
                     await db.execute("UPDATE themes SET state = 'used' WHERE theme = ?", (result,))
                     await db.commit()
                     async with db.execute("SELECT COUNT(theme) FROM themes WHERE state = 'unused'") as cursor:
