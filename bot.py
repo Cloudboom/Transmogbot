@@ -3,25 +3,25 @@ from discord.ext import commands
 import aiosqlite
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-import asyncio
 from dotenv import load_dotenv
 import os
 from pytz import timezone
 import logging
 
-# Load the environment variables from the .env file
-load_dotenv()
+# Load .env defaults without overriding vars provided by Docker/Compose.
+load_dotenv(override=False)
 channel_id=int(os.getenv('CHANNEL_ID'))
 bot_token=os.getenv('BOT_TOKEN')
-cronweek=os.getenv('CRON_DAY_OF_WEEK', '*')
-cronhour=os.getenv('CRON_HOUR', '*')
-cronminute=os.getenv('CRON_MINUTE', '*')
+cron_schedule=os.getenv('CRON_SCHEDULE', '0 5 * * 3')
 crontz = os.getenv('CRON_TZ', 'UTC')
 db_path = os.getenv('DB_PATH', '/main.sqlite')
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [%(name)s] %(message)s")
 logging.getLogger("apscheduler").setLevel(logging.INFO)
-logging.info("Cron config: dow=%r hour=%r min=%r tz=%r db=%s", cronweek, cronhour, cronminute, crontz, db_path)
+logging.info(
+    "Cron config: schedule=%r tz=%r db=%s",
+    cron_schedule, crontz, db_path
+)
 
 # Create the intents and activate the needed ones.
 intents = discord.Intents.default()
@@ -85,13 +85,11 @@ scheduler = AsyncIOScheduler(
 )
 
 def register_jobs_once():
+    trigger = CronTrigger.from_crontab(cron_schedule, timezone=timezone(crontz))
+
     scheduler.add_job(
         cronjob,
-        CronTrigger(
-            day_of_week=cronweek,
-            hour=cronhour,
-            minute=cronminute
-        ),
+        trigger,
         id="weekly_motto_job",
         replace_existing=True
 )
@@ -169,7 +167,6 @@ async def tmnew_error(ctx, error):
 @bot.command()
 async def tmdelete(ctx, limit: int = None):
     try: 
-        channel = bot.get_channel(channel_id)
         async for msg in ctx.message.channel.history(limit=limit):
             await msg.delete()
         print(f"Cleared")
@@ -212,7 +209,6 @@ async def tmall(ctx):
 @bot.command(name='tmon')
 async def tmon(ctx):
     try:
-        channel = bot.get_channel(channel_id)
         async with aiosqlite.connect(db_path) as db:
             await db.execute("UPDATE settings SET output_active = 1")
             await db.commit()
@@ -225,7 +221,6 @@ async def tmon(ctx):
 @bot.command(name='tmoff')
 async def tmoff(ctx):
     try:
-        channel = bot.get_channel(channel_id)
         async with aiosqlite.connect(db_path) as db:
             await db.execute("UPDATE settings SET output_active = 0")
             await db.commit()
@@ -239,7 +234,6 @@ async def tmoff(ctx):
 async def tmnotify(ctx):
     try:
         print(ctx.message.author.global_name)
-        channel = bot.get_channel(channel_id)
         async with aiosqlite.connect(db_path) as db:
             await db.execute("INSERT OR REPLACE INTO notification (user) VALUES (?)", (ctx.message.author.id,))
             await db.commit()
@@ -250,9 +244,8 @@ async def tmnotify(ctx):
 
 #Remove user from notification
 @bot.command(name='tmnotifyoff')
-async def tmnotify(ctx):
+async def tmnotifyoff(ctx):
     try:
-        channel = bot.get_channel(channel_id)
         async with aiosqlite.connect(db_path) as db:
             await db.execute("DELETE FROM notification WHERE user = ?", (ctx.message.author.id,))
             await db.commit()
