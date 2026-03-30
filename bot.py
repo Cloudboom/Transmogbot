@@ -1,4 +1,5 @@
 import discord
+from discord import app_commands
 from discord.ext import commands
 import aiosqlite
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -20,22 +21,40 @@ db_path = os.getenv('DB_PATH', '/main.sqlite')
 language_code = os.getenv('LANGUAGE', 'en')
 
 LANGUAGE_DIR = Path(__file__).resolve().parent / "languages"
+LANGUAGE_CACHE = {}
+
+
+def _normalize_language_code(code):
+    if code is None:
+        return None
+    value = getattr(code, "value", code)
+    normalized = str(value).strip().lower().replace("_", "-")
+    return normalized or None
 
 
 def _read_language_file(code):
-    path = LANGUAGE_DIR / f"{code}.json"
+    normalized = _normalize_language_code(code)
+    if not normalized:
+        return {}
+    if normalized in LANGUAGE_CACHE:
+        return LANGUAGE_CACHE[normalized]
+
+    path = LANGUAGE_DIR / f"{normalized}.json"
     if not path.exists():
+        LANGUAGE_CACHE[normalized] = {}
         return {}
     try:
         with path.open("r", encoding="utf-8") as file:
             data = json.load(file)
-        return data if isinstance(data, dict) else {}
+        LANGUAGE_CACHE[normalized] = data if isinstance(data, dict) else {}
+        return LANGUAGE_CACHE[normalized]
     except Exception:
+        LANGUAGE_CACHE[normalized] = {}
         return {}
 
 
 def _resolve_language(code):
-    requested = (code or "en").strip().lower().replace("_", "-")
+    requested = _normalize_language_code(code) or "en"
     default_messages = _read_language_file("en")
 
     candidates = [requested]
@@ -55,6 +74,37 @@ def _resolve_language(code):
     if default_messages:
         return "en", default_messages, default_messages
     return requested, {}, {}
+
+
+def _translate_with_fallback(key, candidate_codes, **kwargs):
+    template = None
+    seen = set()
+
+    for code in candidate_codes:
+        normalized = _normalize_language_code(code)
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+
+        template = _lookup_message(_read_language_file(normalized), key)
+        if template:
+            break
+
+        if "-" in normalized:
+            base = normalized.split("-")[0]
+            if base not in seen:
+                seen.add(base)
+                template = _lookup_message(_read_language_file(base), key)
+                if template:
+                    break
+
+    if not template:
+        template = _lookup_message(default_messages, key) or key
+
+    try:
+        return template.format(**kwargs)
+    except Exception:
+        return template
 
 
 active_language, language_messages, default_messages = _resolve_language(language_code)
@@ -84,6 +134,41 @@ def t(key, **kwargs):
     except Exception:
         return template
 
+
+def ti(interaction, key, **kwargs):
+    return _translate_with_fallback(
+        key,
+        [
+            getattr(interaction, "locale", None),
+            getattr(interaction, "guild_locale", None),
+            "en",
+        ],
+        **kwargs,
+    )
+
+
+def get_user_name(user):
+    return getattr(user, "global_name", None) or getattr(user, "display_name", None) or str(user)
+
+
+class JsonCommandTranslator(app_commands.Translator):
+    async def translate(self, string, locale, context):
+        if not isinstance(string, app_commands.locale_str):
+            return None
+
+        key = string.extras.get("key")
+        if not key:
+            return None
+
+        return _translate_with_fallback(key, [locale, "en"])
+
+
+async def send_interaction_message(interaction, *, content=None, embed=None, ephemeral=False):
+    if interaction.response.is_done():
+        await interaction.followup.send(content=content, embed=embed, ephemeral=ephemeral)
+    else:
+        await interaction.response.send_message(content=content, embed=embed, ephemeral=ephemeral)
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s [%(name)s] %(message)s")
 logging.getLogger("apscheduler").setLevel(logging.INFO)
 logging.info(t("log.cron_config", schedule=cron_schedule, tz=crontz, db=db_path))
@@ -91,10 +176,10 @@ logging.info(t("log.language_loaded", language=active_language, directory=LANGUA
 
 # Create the intents and activate the needed ones.
 intents = discord.Intents.default()
-intents.message_content = True 
 intents.messages = True
 
-bot = commands.Bot(command_prefix = '!', intents=intents)
+bot = commands.Bot(command_prefix=commands.when_mentioned, intents=intents)
+command_translator = JsonCommandTranslator()
 
 #Output
 async def cronjob():
@@ -197,139 +282,209 @@ async def on_ready():
         if not scheduler.running:
             scheduler.start()
             logging.info(t("log.scheduler_started"))
+        try:
+            await bot.tree.set_translator(command_translator)
+            synced = await bot.tree.sync()
+            logging.info(t("log.commands_synced", count=len(synced)))
+        except Exception as e:
+            logging.error(t("log.commands_sync_error", error=e))
     except Exception as e:
         logging.error(t("log.db_init_error", error=e))
 
 #Adding new event
-@bot.command(pass_context=True)    
-async def tmnew(ctx, *, arg):
+@bot.tree.command(
+    name='tmnew',
+    description=app_commands.locale_str("Submit a new theme.", key="cmd.tmnew.description")
+)
+@app_commands.describe(arg=app_commands.locale_str("Theme to submit", key="cmd.tmnew.arg"))
+async def tmnew(interaction: discord.Interaction, arg: str):
     try:
+        author_name = get_user_name(interaction.user)
         async with aiosqlite.connect(db_path) as db:
             async with db.execute("SELECT theme FROM themes WHERE theme = ?", (arg,)) as cursor:
                 result = await cursor.fetchone()
             if result is None:
-                await db.execute("INSERT INTO themes(state, theme, user) VALUES ('unused', ?, ?)", (arg, ctx.message.author.global_name))
+                await db.execute("INSERT INTO themes(state, theme, user) VALUES ('unused', ?, ?)", (arg, author_name))
                 await db.commit()
-                await ctx.send(
-                    t("msg.tmnew_success", user=ctx.message.author.global_name, theme=arg),
-                    delete_after=60
-                )
+                await send_interaction_message(interaction, content=ti(interaction, "msg.tmnew_success", user=author_name, theme=arg))
             else:
-                await ctx.send(
-                    t("msg.tmnew_duplicate", user=ctx.message.author.global_name, theme=arg),
-                    delete_after=60
-                )
-        await ctx.message.delete()
+                await send_interaction_message(interaction, content=ti(interaction, "msg.tmnew_duplicate", user=author_name, theme=arg))
     except Exception as e:
-        await ctx.send(t("msg.tmnew_error", error=e))
+        await send_interaction_message(interaction, content=ti(interaction, "msg.tmnew_error", error=e), ephemeral=True)
 
-@tmnew.error 
-async def tmnew_error(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(t("msg.tmnew_missing_arg"))
 
 #Delete messages in chat
-@bot.command()
-async def tmdelete(ctx, limit: int = None):
-    try: 
-        async for msg in ctx.message.channel.history(limit=limit):
+@bot.tree.command(
+    name='tmdelete',
+    description=app_commands.locale_str("Delete recent messages in the current channel.", key="cmd.tmdelete.description")
+)
+@app_commands.guild_only()
+@app_commands.default_permissions(administrator=True)
+@app_commands.checks.has_permissions(administrator=True)
+@app_commands.describe(limit=app_commands.locale_str("How many recent messages to delete", key="cmd.tmdelete.limit"))
+async def tmdelete(interaction: discord.Interaction, limit: int = 100):
+    try:
+        channel = interaction.channel
+        if channel is None:
+            await send_interaction_message(interaction, content=ti(interaction, "msg.tmdelete_no_channel"), ephemeral=True)
+            return
+
+        deleted_count = 0
+        async for msg in channel.history(limit=limit):
             await msg.delete()
+            deleted_count += 1
+
         logging.info(t("log.messages_cleared"))
+        await send_interaction_message(
+            interaction,
+            content=ti(interaction, "msg.tmdelete_success", count=deleted_count),
+            ephemeral=True
+        )
     except Exception as e:
         logging.error(t("log.delete_error", error=e))
+        await send_interaction_message(interaction, content=ti(interaction, "msg.tmdelete_error", error=e), ephemeral=True)
+
+
+@tmdelete.error
+async def tmdelete_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.MissingPermissions):
+        await send_interaction_message(interaction, content=ti(interaction, "msg.tmdelete_admin_only"), ephemeral=True)
+        return
+    if isinstance(error, app_commands.NoPrivateMessage):
+        await send_interaction_message(interaction, content=ti(interaction, "msg.tmdelete_no_dm"), ephemeral=True)
+        return
+
+    logging.error(t("log.delete_error", error=error))
+    await send_interaction_message(interaction, content=ti(interaction, "msg.tmdelete_error", error=error), ephemeral=True)
+
 
 #List themes for user
-@bot.command()
-async def tmuser(ctx):
+@bot.tree.command(
+    name='tmuser',
+    description=app_commands.locale_str("Show count of submitted themes per user.", key="cmd.tmuser.description")
+)
+async def tmuser(interaction: discord.Interaction):
     try:
-        channel = bot.get_channel(channel_id)
+        target_channel = bot.get_channel(channel_id) or interaction.channel
+        if target_channel is None:
+            await send_interaction_message(interaction, content=ti(interaction, "msg.target_channel_missing"), ephemeral=True)
+            return
+
         async with aiosqlite.connect(db_path) as db:
             async with db.execute("SELECT user, COUNT(theme) FROM themes WHERE state = 'unused' GROUP BY user") as cursor:
                 result = await cursor.fetchall()
-        embed = discord.Embed(title=t("embed.user_count_title"), color=discord.Color.green())
+        embed = discord.Embed(title=ti(interaction, "embed.user_count_title"), color=discord.Color.green())
         for user, count in result:
             embed.add_field(name=user, value=str(count), inline=False)
-        await channel.send(embed=embed)
-        await ctx.message.delete()
+
+        await target_channel.send(embed=embed)
+        await send_interaction_message(interaction, content=ti(interaction, "msg.sent_to_channel"), ephemeral=True)
     except Exception as e:
-        await ctx.send(t("msg.tmuser_error", error=e))
+        await send_interaction_message(interaction, content=ti(interaction, "msg.tmuser_error", error=e), ephemeral=True)
+
 
 #List all themes
-@bot.command(name='tmall')
-async def tmall(ctx):
+@bot.tree.command(
+    name='tmall',
+    description=app_commands.locale_str("List all currently unused themes.", key="cmd.tmall.description")
+)
+async def tmall(interaction: discord.Interaction):
     try:
-        channel = bot.get_channel(channel_id)
+        target_channel = bot.get_channel(channel_id) or interaction.channel
+        if target_channel is None:
+            await send_interaction_message(interaction, content=ti(interaction, "msg.target_channel_missing"), ephemeral=True)
+            return
+
         async with aiosqlite.connect(db_path) as db:
             async with db.execute("SELECT user, theme FROM themes WHERE state = 'unused'") as cursor:
                 result = await cursor.fetchall()
-        embed = discord.Embed(title=t("embed.all_themes_title"), color=discord.Color.gold())
+        embed = discord.Embed(title=ti(interaction, "embed.all_themes_title"), color=discord.Color.gold())
         for user, theme in result:
             embed.add_field(name=user, value=theme, inline=False)
-        await channel.send(embed=embed)
-        await ctx.message.delete()
+
+        await target_channel.send(embed=embed)
+        await send_interaction_message(interaction, content=ti(interaction, "msg.sent_to_channel"), ephemeral=True)
     except Exception as e:
-        await ctx.send(t("msg.tmall_error", error=e))
+        await send_interaction_message(interaction, content=ti(interaction, "msg.tmall_error", error=e), ephemeral=True)
+
 
 #Turn output on
-@bot.command(name='tmon')
-async def tmon(ctx):
+@bot.tree.command(
+    name='tmon',
+    description=app_commands.locale_str("Enable scheduled output posting.", key="cmd.tmon.description")
+)
+async def tmon(interaction: discord.Interaction):
     try:
         async with aiosqlite.connect(db_path) as db:
             await db.execute("UPDATE settings SET output_active = 1")
             await db.commit()
-            await ctx.send(t("msg.tmon_success"))
-            
+            await send_interaction_message(interaction, content=ti(interaction, "msg.tmon_success"))
     except Exception as e:
-        await ctx.send(t("msg.tmon_error", error=e))
+        await send_interaction_message(interaction, content=ti(interaction, "msg.tmon_error", error=e), ephemeral=True)
+
 
 #Turn output off
-@bot.command(name='tmoff')
-async def tmoff(ctx):
+@bot.tree.command(
+    name='tmoff',
+    description=app_commands.locale_str("Disable scheduled output posting.", key="cmd.tmoff.description")
+)
+async def tmoff(interaction: discord.Interaction):
     try:
         async with aiosqlite.connect(db_path) as db:
             await db.execute("UPDATE settings SET output_active = 0")
             await db.commit()
-            await ctx.send(t("msg.tmoff_success"))
-            
+            await send_interaction_message(interaction, content=ti(interaction, "msg.tmoff_success"))
     except Exception as e:
-        await ctx.send(t("msg.tmoff_error", error=e))
+        await send_interaction_message(interaction, content=ti(interaction, "msg.tmoff_error", error=e), ephemeral=True)
+
 
 #Add user to notification
-@bot.command(name='tmnotify')
-async def tmnotify(ctx):
+@bot.tree.command(
+    name='tmnotify',
+    description=app_commands.locale_str("Enable notifications for the current user.", key="cmd.tmnotify.description")
+)
+async def tmnotify(interaction: discord.Interaction):
     try:
-        logging.info(t("log.notify_subscribe", user=ctx.message.author.global_name))
+        logging.info(t("log.notify_subscribe", user=get_user_name(interaction.user)))
         async with aiosqlite.connect(db_path) as db:
-            await db.execute("INSERT OR REPLACE INTO notification (user) VALUES (?)", (ctx.message.author.id,))
+            await db.execute("INSERT OR REPLACE INTO notification (user) VALUES (?)", (interaction.user.id,))
             await db.commit()
-            await ctx.send(t("msg.tmnotify_success"))
-            
+            await send_interaction_message(interaction, content=ti(interaction, "msg.tmnotify_success"))
     except Exception as e:
-        await ctx.send(t("msg.tmnotify_error", error=e))
+        await send_interaction_message(interaction, content=ti(interaction, "msg.tmnotify_error", error=e), ephemeral=True)
+
 
 #Remove user from notification
-@bot.command(name='tmnotifyoff')
-async def tmnotifyoff(ctx):
+@bot.tree.command(
+    name='tmnotifyoff',
+    description=app_commands.locale_str("Disable notifications for the current user.", key="cmd.tmnotifyoff.description")
+)
+async def tmnotifyoff(interaction: discord.Interaction):
     try:
         async with aiosqlite.connect(db_path) as db:
-            await db.execute("DELETE FROM notification WHERE user = ?", (ctx.message.author.id,))
+            await db.execute("DELETE FROM notification WHERE user = ?", (interaction.user.id,))
             await db.commit()
-            await ctx.send(t("msg.tmnotifyoff_success"))
-            
+            await send_interaction_message(interaction, content=ti(interaction, "msg.tmnotifyoff_success"))
     except Exception as e:
-        await ctx.send(t("msg.tmnotifyoff_error", error=e))
+        await send_interaction_message(interaction, content=ti(interaction, "msg.tmnotifyoff_error", error=e), ephemeral=True)
+
 
 #Help
-@bot.command()    
-async def tmhelp(ctx):
-    try:    
-        await ctx.send(t("help.line1"))
-        await ctx.send(t("help.line2"))
-        await ctx.send(t("help.line3"))
-        await ctx.send(t("help.line4"))
-        await ctx.send(t("help.line5"))
-        await ctx.message.delete()
+@bot.tree.command(
+    name='tmhelp',
+    description=app_commands.locale_str("Show available bot commands.", key="cmd.tmhelp.description")
+)
+async def tmhelp(interaction: discord.Interaction):
+    try:
+        help_text = "\n".join([
+            ti(interaction, "help.line1"),
+            ti(interaction, "help.line2"),
+            ti(interaction, "help.line3"),
+            ti(interaction, "help.line4"),
+            ti(interaction, "help.line5")
+        ])
+        await send_interaction_message(interaction, content=help_text, ephemeral=True)
     except Exception as e:
-        await ctx.send(t("msg.tmhelp_error", error=e))
+        await send_interaction_message(interaction, content=ti(interaction, "msg.tmhelp_error", error=e), ephemeral=True)
 
 bot.run(bot_token)
