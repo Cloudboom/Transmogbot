@@ -325,9 +325,17 @@ async def tmnew(interaction: discord.Interaction, arg: str):
             if result is None:
                 await db.execute("INSERT INTO themes(state, theme, user) VALUES ('unused', ?, ?)", (arg, author_name))
                 await db.commit()
-                await send_interaction_message(interaction, content=ti(interaction, "msg.tmnew_success", user=author_name, theme=arg))
+                await send_interaction_message(
+                    interaction,
+                    content=ti(interaction, "msg.tmnew_success", user=author_name, theme=arg),
+                    ephemeral=True
+                )
             else:
-                await send_interaction_message(interaction, content=ti(interaction, "msg.tmnew_duplicate", user=author_name, theme=arg))
+                await send_interaction_message(
+                    interaction,
+                    content=ti(interaction, "msg.tmnew_duplicate", user=author_name, theme=arg),
+                    ephemeral=True
+                )
     except Exception as e:
         await send_interaction_message(interaction, content=ti(interaction, "msg.tmnew_error", error=e), ephemeral=True)
 
@@ -384,11 +392,6 @@ async def tmdelete_error(interaction: discord.Interaction, error: app_commands.A
 )
 async def tmuser(interaction: discord.Interaction):
     try:
-        target_channel = bot.get_channel(channel_id) or interaction.channel
-        if target_channel is None:
-            await send_interaction_message(interaction, content=ti(interaction, "msg.target_channel_missing"), ephemeral=True)
-            return
-
         async with aiosqlite.connect(db_path) as db:
             async with db.execute("SELECT user, COUNT(theme) FROM themes WHERE state = 'unused' GROUP BY user") as cursor:
                 result = await cursor.fetchall()
@@ -396,8 +399,7 @@ async def tmuser(interaction: discord.Interaction):
         for user, count in result:
             embed.add_field(name=user, value=str(count), inline=False)
 
-        await target_channel.send(embed=embed)
-        await send_interaction_message(interaction, content=ti(interaction, "msg.sent_to_channel"), ephemeral=True)
+        await send_interaction_message(interaction, embed=embed, ephemeral=True)
     except Exception as e:
         await send_interaction_message(interaction, content=ti(interaction, "msg.tmuser_error", error=e), ephemeral=True)
 
@@ -409,11 +411,6 @@ async def tmuser(interaction: discord.Interaction):
 )
 async def tmall(interaction: discord.Interaction):
     try:
-        target_channel = bot.get_channel(channel_id) or interaction.channel
-        if target_channel is None:
-            await send_interaction_message(interaction, content=ti(interaction, "msg.target_channel_missing"), ephemeral=True)
-            return
-
         async with aiosqlite.connect(db_path) as db:
             async with db.execute("SELECT user, theme FROM themes WHERE state = 'unused'") as cursor:
                 result = await cursor.fetchall()
@@ -421,8 +418,7 @@ async def tmall(interaction: discord.Interaction):
         for user, theme in result:
             embed.add_field(name=user, value=theme, inline=False)
 
-        await target_channel.send(embed=embed)
-        await send_interaction_message(interaction, content=ti(interaction, "msg.sent_to_channel"), ephemeral=True)
+        await send_interaction_message(interaction, embed=embed, ephemeral=True)
     except Exception as e:
         await send_interaction_message(interaction, content=ti(interaction, "msg.tmall_error", error=e), ephemeral=True)
 
@@ -440,7 +436,7 @@ async def tmon(interaction: discord.Interaction):
         async with aiosqlite.connect(db_path) as db:
             await db.execute("UPDATE settings SET output_active = 1")
             await db.commit()
-            await send_interaction_message(interaction, content=ti(interaction, "msg.tmon_success"))
+            await send_interaction_message(interaction, content=ti(interaction, "msg.tmon_success"), ephemeral=True)
     except Exception as e:
         await send_interaction_message(interaction, content=ti(interaction, "msg.tmon_error", error=e), ephemeral=True)
 
@@ -470,7 +466,7 @@ async def tmoff(interaction: discord.Interaction):
         async with aiosqlite.connect(db_path) as db:
             await db.execute("UPDATE settings SET output_active = 0")
             await db.commit()
-            await send_interaction_message(interaction, content=ti(interaction, "msg.tmoff_success"))
+            await send_interaction_message(interaction, content=ti(interaction, "msg.tmoff_success"), ephemeral=True)
     except Exception as e:
         await send_interaction_message(interaction, content=ti(interaction, "msg.tmoff_error", error=e), ephemeral=True)
 
@@ -498,7 +494,7 @@ async def tmnotify(interaction: discord.Interaction):
         async with aiosqlite.connect(db_path) as db:
             await db.execute("INSERT OR REPLACE INTO notification (user) VALUES (?)", (interaction.user.id,))
             await db.commit()
-            await send_interaction_message(interaction, content=ti(interaction, "msg.tmnotify_success"))
+            await send_interaction_message(interaction, content=ti(interaction, "msg.tmnotify_success"), ephemeral=True)
     except Exception as e:
         await send_interaction_message(interaction, content=ti(interaction, "msg.tmnotify_error", error=e), ephemeral=True)
 
@@ -513,7 +509,7 @@ async def tmnotifyoff(interaction: discord.Interaction):
         async with aiosqlite.connect(db_path) as db:
             await db.execute("DELETE FROM notification WHERE user = ?", (interaction.user.id,))
             await db.commit()
-            await send_interaction_message(interaction, content=ti(interaction, "msg.tmnotifyoff_success"))
+            await send_interaction_message(interaction, content=ti(interaction, "msg.tmnotifyoff_success"), ephemeral=True)
     except Exception as e:
         await send_interaction_message(interaction, content=ti(interaction, "msg.tmnotifyoff_error", error=e), ephemeral=True)
 
